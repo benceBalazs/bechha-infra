@@ -1,0 +1,7 @@
+node_modules
+test_data
+uploads
+logs
+.DS_Store
+.env
+dist
