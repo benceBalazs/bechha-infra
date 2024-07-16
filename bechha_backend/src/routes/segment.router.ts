@@ -2,39 +2,32 @@ import express, { NextFunction, Request, Response, Router } from "express";
 
 const router: Router = express.Router();
 
-// Function to generate or retrieve thumbnail URL
-async function generateOrRetrieveThumbnail(segment: ISegment): Promise<string> {
-	// Logic to generate or retrieve thumbnail URL from a storage location (e.g., file system)
+import Segment, { ISegment } from "@Models/segment";
+import { LOGGER } from "@Utils";
+// import { promises as fs } from "fs";
+import path from "path";
+import { CONFIG } from "@/app";
 
-	// Example: Generating a mock thumbnail URL (replace with actual logic)
-	const thumbnailUrl = `/thumbnails/${segment._id}.jpg`; // Assuming segment._id is used as unique identifier
-	LOGGER.info(`Generating thumbnail /thumbnails/${segment._id}.jpg`);
-	return thumbnailUrl;
-}
-
-import Segment, { ISegment } from "@models/segment";
-import { LOGGER } from "@/app";
-
+// thumbnail
 router
-	.route("/segments")
+	.route("/segment/:id/:fileName")
 	.get(async (req: Request, res: Response) => {
+		const { id, fileName } = req.params;
 		try {
-			// Fetch segments from MongoDB
-			const segments: ISegment[] = await Segment.find().exec();
+			
+			const segmentExists = await Segment.exists({
+				extractedFrom: id,
+				frameFiles: { $in: [fileName] },
+			});
 
-			// Prepare response with thumbnails (if not exist, generate and store)
-			const response = await Promise.all(
-				segments.map(async (segment) => {
-					const thumbnailUrl = await generateOrRetrieveThumbnail(segment);
-					return {
-						video: segment.extractedFrom,
-						segment,
-						thumbnail_url: thumbnailUrl,
-					};
-				})
-			);
+			if (!segmentExists) {
+				res.status(404).json({ message: "Segment not found" });
+				return;
+			}
 
-			res.json(response);
+			const frameImagePath = path.join(CONFIG.PROCESSED_DATASET_PATH, id, fileName);
+
+			res.status(200).sendFile(frameImagePath);
 		} catch (err) {
 			LOGGER.warn(`/segments Error fetching segments ${err}`);
 			res.status(500).json({ error: "Internal Server Error" });
@@ -42,6 +35,6 @@ router
 	})
 	.all((req: Request, res: Response) => {
 		res.sendStatus(405);
-    });
-    
+	});
+
 export default router;

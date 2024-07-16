@@ -15,20 +15,16 @@
 		"esModuleInterop": true, // fixes some issues TS originally had with the ES6 spec where TypeScript treats CommonJS/AMD/UMD modules similar to ES6 module
 		"moduleResolution": "node", // Pretty much always node for modern JS. Other option is "classic"
 		"paths": {
-			"@config/*": ["src/config/*"],
-			"@config": ["src/config/index"],
-			"@crud/*": ["src/crud/*"],
-			"@crud": ["src/crud/index"],
-			"@routes/*": ["src/routes/*"],
-			"@routes": ["src/routes/index"],
-			"@utils/*": ["src/utils/*"],
-			"@utils": ["src/utils/index"],
-			"@middleware/*": ["src/middleware/*"],
-			"@middleware": ["src/middleware/index"],
-			"@models/*": ["src/models/*"],
-			"@models": ["src/models/index"],
-			"@T/*": ["src/types/*"],
-			"@T": ["src/types/index"],
+			"@Routes/*": ["src/routes/*"],
+			"@Routes": ["src/routes/index"],
+			"@Utils/*": ["src/utils/*"],
+			"@Utils": ["src/utils/index"],
+			"@Services/*": ["src/services/*"],
+			"@Services": ["src/services/index"],
+			"@Models/*": ["src/models/*"],
+			"@Models": ["src/models/index"],
+			"@Types/*": ["src/types/*"],
+			"@Types": ["src/types/index"],
 			// "@test/*": ["test/*"],
 			"@/*": ["src/*"]
 		}, // A series of entries which re-map imports to lookup locations relative to the baseUrl

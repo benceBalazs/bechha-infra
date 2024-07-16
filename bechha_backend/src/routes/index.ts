@@ -1,22 +1,22 @@
 import express, { NextFunction, Request, Response, Router } from "express";
 const router: Router = express.Router();
 
-import videosRouter from "@routes/videos.router";
+import videosRouter from "@Routes/videos.router";
 router.use("/", videosRouter);
 
-import videoPlayerRouter from "@routes/videoplayer.router";
+import videoPlayerRouter from "@Routes/videoplayer.router";
 router.use("/", videoPlayerRouter);
 
-import searchRouter from "@routes/search.router";
+import searchRouter from "@Routes/search.router";
 router.use("/", searchRouter);
 
-import segmentRouter from "@routes/segment.router";
+import segmentRouter from "@Routes/segment.router";
 router.use("/", segmentRouter);
 
-import metadataRouter from "@routes/metadata.router";
+import metadataRouter from "@Routes/metadata.router";
 router.use("/", metadataRouter);
 
-import tasksRouter from "@routes/tasks.router";
+import tasksRouter from "unused/tasks.router";
 router.use("/", tasksRouter);
 
 router

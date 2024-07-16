@@ -1,4 +1,5 @@
-import { LOGGER } from "@/app";
+import { CONFIG } from "@/app";
+import { LOGGER } from "@Utils";
 import express, { NextFunction, Request, Response, Router } from "express";
 import fs from "fs";
 import path from "path";
@@ -7,10 +8,10 @@ const router: Router = express.Router();
 
 router.route("/videoplayer/:id").get((req: Request, res: Response) => {
 	const { id } = req.params;
-	const videoDirectory = path.join(__dirname, "../../uploads/videos");
-	const videoPath = path.join(videoDirectory, `${id}.mp4`);
 
-	fs.stat(videoPath, (err, stats) => {
+	const video = path.join(CONFIG.DATASET_PATH, id,`${id}.mp4`);
+
+	fs.stat(video, (err, stats) => {
 		if (err) {
 			LOGGER.warn(`/videoplayer/:id Error accessing video file ${err}`);
 			res.status(404).send("Video not found");
@@ -32,7 +33,7 @@ router.route("/videoplayer/:id").get((req: Request, res: Response) => {
 		};
 
 		res.writeHead(206, headers);
-		const stream = fs.createReadStream(videoPath, { start, end });
+		const stream = fs.createReadStream(video, { start, end });
 		stream.on("open", () => stream.pipe(res));
 		stream.on("error", (streamErr) => {
 			LOGGER.warn(`/videoplayer/:id Error streaming video ${streamErr}`);
