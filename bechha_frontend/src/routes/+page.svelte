@@ -18,6 +18,15 @@
       console.error(error);
     }
   }
+
+  function openModal(item:any) {
+    (document.getElementById('modal-description') as any).innerText = 'Video ' + item + ' detailed description...';
+    (document.getElementById('modal') as any).style.display = 'flex';
+  }
+
+  function closeModal() {
+    (document.getElementById('modal') as any).style.display = 'none';
+  }
 </script>
 
 <div class="w-full h-full px-64">
@@ -38,7 +47,7 @@
             active={activeType === CardType.ContentSearch} 
           />
         </div>
-        <div class="divider divider-horizontal w-fit py-4 flex-none"></div>
+        <!-- <div class="divider divider-horizontal w-fit py-4 flex-none"></div> -->
         <div class="card-container">
           <SearchCard 
             type={CardType.Browse} 
@@ -58,36 +67,43 @@
     </div>
     <div class="w-full h-[calc(100% - 1.25rem)] row-span-5 mt-5 overflow-y-auto">
       <!-- Results -->
-      
-      <div class="w-full h-full flex flex-row flex-wrap justify-between text-4xl gap-2">
-        {#await true}
-          Make a query
-        {:then value}
-          {#each [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21] as item}
-             <div class="card card-side bg-base-100 shadow-xl flex-none basis-1/4 border">
-              <figure>
-                <img class="aspect-video"
-                  src={SampleImage}
-                  alt="Movie" />
-              </figure>
-              <div class="card-body">
-                <h2 class="card-title">{item}</h2>
-                <p>{item}</p>
-              </div>
+      <div class="w-full h-full flex flex-row flex-wrap justify-between gap-2">
+        {#each [1,2,3,4,5] as item}
+          <button class="card bg-base-100 shadow-xl flex-none basis-1/5 border cursor-pointer" on:click={()=>openModal({item})}>
+            <figure class="w-full">
+              <img class="aspect-video w-full" src={SampleImage} alt="Movie">
+            </figure>
+            <div class="card-body p-2">
+              <h2 class="card-title text-sm">Video {item }</h2>
+              <p class="text-sm">videoID: {item}</p>
+              <p class="text-sm">timeframe: {item * 10}ms</p>
             </div>
-          {:else}
-             <h1>no items with this combination found</h1>
-          {/each}
-        {:catch error}
-          <h1>Error</h1>
-        {/await}
+          </button>
+        {/each}
       </div>
-
-      <div class="join">
+      <div class="join mt-4">
         <button class="join-item btn">1</button>
         <button class="join-item btn btn-active">2</button>
         <button class="join-item btn">3</button>
         <button class="join-item btn">4</button>
+      </div>
+    </div>
+    
+    <!-- Modal -->
+    <div id="modal" class="modal flex">
+      <div class="modal-content">
+        <div class="flex-1">
+          <h2 class="text-2xl">Detailed Description</h2>
+          <p id="modal-description"></p>
+          <button class="btn mt-4" on:click={closeModal}>Close</button>
+        </div>
+        <div class="flex-1">
+          <!-- svelte-ignore a11y-media-has-caption -->
+          <video id="modal-video" controls class="w-full h-full">
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
       </div>
     </div>
   </div>
@@ -108,4 +124,25 @@
     max-width: 400px;
     height: 100%; /* Ensure the card takes the full height */
   }
+  .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+    }
 </style>
