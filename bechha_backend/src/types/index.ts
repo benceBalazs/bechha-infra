@@ -12,6 +12,14 @@
 //     probability: number;
 // }
 
+export interface AppConfig {
+	HOST: string;
+	PORT: number;
+	MONGODB_URI: string;
+	DATASET_PATH: string;
+	PROCESSED_DATASET_PATH: string;
+}
+
 // export class Frame {
 //     path: string;
 // }
@@ -28,115 +36,123 @@
 // }
 
 class Tracking {
-    videoId: string;
-    noneProcessed: boolean;
-    fullyProcessed: boolean;
-    hasBoundaries: boolean;
-    hasTags: boolean;
-    hasHistogram: boolean;
+	videoId: string;
+	noneProcessed: boolean;
+	fullyProcessed: boolean;
+	hasBoundaries: boolean;
+	hasTags: boolean;
+	hasHistogram: boolean;
 }
 
 export class Video {
-    path: string;
+	path: string;
 }
 
 export class Frame {
-    path: string;
+	path: string;
 }
 
 export class Transition {
-    frames: Frame[];
+	frames: Frame[];
 }
 
 export class Tag {
-    name: string;
-    probability: number;
+	name: string;
+	probability: number;
 }
 
-/** 
+/**
  * @param starting_frame start frame index of the segment
  * @param ending_frame end frame index of the segment
  * @param frames total frames in the segment
- */ 
+ */
 export class SegmentFrameInfo {
-    starting_frame: number;
-    ending_frame: number;
-    frames_count: number;
-    frames:  Frame[];
+	starting_frame: number;
+	ending_frame: number;
+	frames_count: number;
+	frames: Frame[];
 }
 
-/** 
+/**
  * @param starting_time start time of the segment
  * @param ending_time end time of the segment
  * @param duration duration in milliseconds between starting and end time
- */ 
+ */
 export class SegmentVideoInfo {
-    starting_time: number;
-    ending_time: number;
-    duration: number;
-    fps: number;
+	starting_time: number;
+	ending_time: number;
+	duration: number;
+	fps: number;
 }
 
-/** 
+/**
  * @param tags occuring tags in the segment
- */ 
+ */
 export class SegmentTags {
-    tags: string[];
+	tags: string[];
 }
 
 export type Segment = SegmentFrameInfo & SegmentVideoInfo & SegmentTags;
 
-
 export interface Task<Input, Output> {
-    process(input: Input): Promise<Output>;
+	process(input: Input): Promise<Output>;
 }
 
 export interface Input<InputType> {
-    in: InputType;
-}
-  
-export interface Output<OutputType> {
-    out: OutputType;
+	in: InputType;
 }
 
+export interface Output<OutputType> {
+	out: OutputType;
+}
 
 class Return {
-    videoId: string // filename of the video
-
+	videoId: string; // filename of the video
 }
 
 export class FrameSlicerTaskInput {
-    videoId: string;
-    videoPath: string;
-    frames?: Frame[];
-} 
-
+	videoId: string;
+	videoPath: string;
+	frames?: Frame[];
+}
 
 export class TransNetTaskInput {
-    videoId: string;
-    framesPath: string;
-    frames?: Frame[];
+	videoId: string;
+	framesPath: string;
+	frames?: Frame[];
 }
 
 export class ShotBoundaryDetectionInput {
-    videoPath: string;
-    videoId: string;
+	videoPath: string;
+	videoId: string;
 }
 
 export class YoloObjectDetectionInput {
-    videoId: string;
-    videoPath: string;
-    shotBoundaries: number[];
+	videoId: string;
+	videoPath: string;
+	shotBoundaries: number[];
+}
+
+export class VideoSegmenterInput {
+	videoFileName: string;
+	videosPath: string;
+	shotBoundaries: number[];
+	outputPath: string;
+}
+
+export class VideoFile {
+	name: string;
+	path: string;
+}
+
+export type VideoSegment = VideoFile & { createdFromVideoId: string };
+
+export class VideoSegmenterOutput {
+	videoFiles: string[]; // list of video file paths
 }
 // list all matching segments ✅
 
 // GET /search?tags=?page=1?limit=10
-
-export class TagSearchParam {
-    tags: string[];
-    page: number;
-    limit: number;
-}
 
 // 0-10
 
@@ -163,9 +179,7 @@ export class TagSearchParam {
 // over the segment player are the segments of the actual video
 // on click the segment start and end time has to be changed of the videoplayer (change modal info)
 
-
-
-// 
+//
 // TagInfo {
 //    tagName:cat
 //}
