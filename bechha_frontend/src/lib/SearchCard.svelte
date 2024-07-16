@@ -41,7 +41,6 @@
       <input type="text" placeholder={placeholder} class="input input-bordered w-full mb-2" />
     {:else if type === CardType.Browse}
       <select class="select select-bordered w-full">
-        <option disabled selected>Who shot first?</option>
         {#each options as option}
           <option>{option}</option>
         {/each}

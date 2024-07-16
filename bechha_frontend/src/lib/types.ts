@@ -5,10 +5,16 @@ export enum CardType {
 }
 
 export interface SearchResult {
-  id: string;
-  title: string;
-  tags: string[];
-  image: string;
+    extractedFrom: string,
+    starting_frame: number,
+    ending_frame: number,
+    starting_time: number,
+    ending_time: number,
+    frames: number,
+    duration: number,
+    frameUrl: string,
+    description: string,
+    tokens: string[]
 }
 
 export interface Video {
