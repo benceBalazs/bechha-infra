@@ -1,4 +1,8 @@
 // src/lib/types.ts
+export enum CardType {
+  ContentSearch,
+  Browse
+}
 
 export interface SearchResult {
   id: string;
