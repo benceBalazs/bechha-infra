@@ -193,9 +193,9 @@ export async function load() {
         </div> -->
         <div class="border-2 border-black rounded-lg shadow-2xl grid grid-rows-4 grow cursor-pointer">
           <div class="row-span-1 grid grid-cols-4 place-content-center">
-            <h2 class="text-left col-span-3 pl-4">Content Search</h2>
+            <h2 class="text-left col-span-3 pl-2 text-md font-bold">Content Search</h2>
             <div class="w-full h-full grid place-content-end">
-              <input type="checkbox" checked={false} class="checkbox col-span-1 mr-4 border-black" />
+              <input type="checkbox" checked={false} class="checkbox col-span-1 mr-1 mt-1 border-black" />
             </div>
           </div>
           <div class="row-span-3">
