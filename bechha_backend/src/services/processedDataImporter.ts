@@ -6,7 +6,6 @@ function createSegmentsFromSceneData(
 	sceneData: any,
 	id: string,
 	frameFiles: string[],
-	// keyframeDescriptions: any
 ): ISegment[] {
 	const segments: any[] = [];
 

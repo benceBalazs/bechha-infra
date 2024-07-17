@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 // Define interface for TypeScript type checking
 export interface IVideoInfo extends Document {
-    videoId: string;
+    basedOn: string;
 	extractor?: string;
 	upload_date?: string | Date;
 	height?: number;
@@ -43,7 +43,7 @@ export interface IVideoInfo extends Document {
 }
 
 const VideoInfoSchema: Schema = new Schema({
-    videoId: { type: String, required: true },
+    basedOn: { type: String, required: true },
 	extractor: String,
 	upload_date: { type: Date, default: null },
 	height: Number,
