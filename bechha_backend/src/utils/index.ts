@@ -135,3 +135,8 @@ export async function connectToDatabase(url: string): Promise<void> {
 			});
 	});
 }
+
+import {Request, Response} from "express";
+export const RouteNotImplemented = (req: Request, res: Response) => {
+	res.sendStatus(405);
+};

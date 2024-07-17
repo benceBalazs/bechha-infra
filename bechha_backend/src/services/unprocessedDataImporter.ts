@@ -16,7 +16,8 @@ export async function parseUnprocessedData(folder: string) {
 		return;
 	}
 
-	const jsonData = readJsonFile(path.join(folder, `${id}.info.json`));
+	const jsonData = await readJsonFile(path.join(folder, `${id}.info.json`));
+	LOGGER.debug(jsonData);
 	const videoInfo = new VideoInfo({ basedOn: id, ...jsonData });
 
 	let exists = await VideoInfo.exists({ basedOn: id });

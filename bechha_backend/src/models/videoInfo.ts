@@ -52,7 +52,7 @@ const VideoInfoSchema: Schema = new Schema({
 	fulltitle: String,
 	id: String,
 	view_count: { type: Number, default: null },
-	playlist: Schema.Types.Mixed, // Mixed type for flexibility
+	playlist: Schema.Types.Mixed, 
 	title: String,
 	_filename: String,
 	abr: { type: Number, default: null },

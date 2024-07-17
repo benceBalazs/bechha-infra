@@ -12,6 +12,7 @@ export interface ISegment extends Document {
     frameFiles: string[];
     description: string;
     tokens: string[];
+    category: string[];
 }
 
 export const Segment: Schema = new Schema({
@@ -27,6 +28,7 @@ export const Segment: Schema = new Schema({
     frameFiles: { type: [String], required: true },
     description: { type: String, required: true },
     tokens: { type: [String], required: true },
+    category: { type: [String], required: true },
 });
 
 export default mongoose.model<ISegment>('Segment', Segment);

@@ -1,16 +1,11 @@
-import Segment,{ ISegment } from "@Models/segment";
+import Segment, { ISegment } from "@Models/segment";
 import { filterTokens, LOGGER, parseTime, readDirectoryContents, readJsonFile } from "@Utils";
 import path from "path";
 
-function createSegmentsFromSceneData(
-	sceneData: any,
-	id: string,
-	frameFiles: string[],
-): ISegment[] {
+function createSegmentsFromSceneData(sceneData: any, id: string, frameFiles: string[]): ISegment[] {
 	const segments: any[] = [];
 
 	for (const scene of sceneData) {
-
 		const frameFile = scene.frame;
 
 		const description = scene.description ? scene.description : "";
@@ -27,7 +22,8 @@ function createSegmentsFromSceneData(
 			frameUrl: `segment/${id}/${frameFile}`,
 			frameFiles: frameFiles,
 			description: description,
-			tokens: filterTokens(description),
+			tokens: [scene.category, ...filterTokens(description)],
+			category: scene.category,
 		};
 
 		segments.push(segment);
@@ -42,17 +38,15 @@ async function processFiles(directoryPath: string): Promise<ISegment[]> {
 		const segments: any[] = [];
 
 		// Filter and process scene JSON files
-		const sceneFiles = files.filter((file) => file.endsWith("_scenes_descriptions.json"));
+		const sceneFiles = files.filter((file) =>
+			file.endsWith("00100_scenes_descriptions_categories.json")
+		);
 		for (const sceneFile of sceneFiles) {
 			const id = sceneFile.split("_")[0];
 			const sceneData = await readJsonFile(path.join(directoryPath, sceneFile));
 			const frameFiles = files.filter((file) => file.startsWith(id) && file.endsWith(".jpg"));
 
-			const newSegments = createSegmentsFromSceneData(
-				sceneData,
-				id,
-				frameFiles,
-			);
+			const newSegments = createSegmentsFromSceneData(sceneData, id, frameFiles);
 			segments.push(...newSegments);
 		}
 		return segments;
@@ -71,7 +65,7 @@ export async function parseProcessedData(folder: string) {
 		starting_frame: { $in: segments.map((segment) => segment.starting_frame) },
 		ending_frame: { $in: segments.map((segment) => segment.ending_frame) },
 	}).exec();
-	
+
 	const segmentsToSave = segments.filter((segment) => {
 		return !existingSegments.some((existingSegment) => {
 			return (
@@ -84,7 +78,11 @@ export async function parseProcessedData(folder: string) {
 
 	await Segment.insertMany(segmentsToSave);
 	let res = segmentsToSave.map((segment: ISegment) => {
-		return "\t" + segment.fileName
-	})
-	LOGGER.info(`The following segments have been saved successfully ${(res.length!=0)?"[\n"+res.join(",\n")+"\n]":"[]"}`);
+		return "\t" + segment.fileName;
+	});
+	LOGGER.info(
+		`The following segments have been saved successfully ${
+			res.length != 0 ? "[\n" + res.join(",\n") + "\n]" : "[]"
+		}`
+	);
 }
