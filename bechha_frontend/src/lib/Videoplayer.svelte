@@ -1,5 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  export let source: string;
+  export let startTime: string;
+  export let endTime: string;
 
   onMount(() => {
     const video:any = document.getElementById("videoPlayer");
@@ -7,10 +10,6 @@
     const progressBar: any = document.getElementById("progressBar");
     const progressContainer: any = document.getElementById("progressContainer");
     const timeDisplay: any = document.getElementById("timeDisplay");
-
-      // Define the start and end time in seconds
-    const startTime = 30; // start time in seconds
-    const endTime = 40; // end time in seconds
 
     // Update the time display
     const updateTimeDisplay = () => {
@@ -78,7 +77,7 @@
 <div class="video-container">
   <video
     id="videoPlayer"
-    src="http://localhost:3000/videoplayer/00100_c6a1c82d-eea3-4ded-9926-c155dd9ea5af"
+    src={}
     preload="metadata">
     <track kind="captions">
   </video>

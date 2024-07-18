@@ -1,15 +1,30 @@
 <script lang="ts">
   import { CardType } from "./types";
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
+  import MultiSelect from 'svelte-multiselect';
+  let loading = false;
+  export let selected: string[];
+
+  $: if (selected) {
+    loading = true;
+    setTimeout(async () => {
+      if(selected.length!=0){
+        dispatch('tagselection', {selected});
+      }
+      loading = false;
+    }, 1000);
+}
 
   export let type: CardType;
   export let active: boolean = false;
 
   // Additional props can be added for future flexibility
   export let checked: boolean = false;
-  export let tags: string[] = ["sample tag 1"];
-  export let placeholder: string = "Type here";
   export let options: string[] = ["Han Solo", "Greedo"];
+  
+  onMount(()=>{
+
+  });
 
   const dispatch = createEventDispatcher();
 
@@ -27,18 +42,27 @@
   class:opacity-80={!active}
   class:opacity-100={active}
   on:click={activateCard}
-  on:keydown={(e) => e.key === 'Enter' && activateCard()}
   aria-label={type === CardType.ContentSearch ? "Content Search" : "Browse"}
 >
-  <div>
+  <div class="w-full h-full">
     <div class="flex justify-between items-center mb-2">
       <h2 class="text-lg font-bold">{type === CardType.ContentSearch ? "Content Search" : "Browse"}</h2>
       {#if active}
         <input type="checkbox" bind:checked class="checkbox checkbox-primary border-black" />
+      {:else}
+        <input type="checkbox" class="checkbox checkbox-primary border-black opacity-80" />
       {/if}
     </div>
     {#if type === CardType.ContentSearch}
-      <input type="text" placeholder={placeholder} class="input input-bordered w-full mb-2" />
+    <div class="w-full">
+      <MultiSelect
+      id="searchtags"
+      options={options}
+      placeholder="Take your pick..."
+      bind:selected
+      {loading}
+    />
+    </div>
     {:else if type === CardType.Browse}
       <select class="select select-bordered w-full">
         {#each options as option}
@@ -46,16 +70,6 @@
         {/each}
       </select>
     {/if}
-  </div>
-  <div class="flex flex-wrap gap-2 overflow-hidden">
-    {#each tags as tag}
-      <div class="badge badge-outline flex items-center gap-1">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="h-4 w-4 stroke-current">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-        {tag}
-      </div>
-    {/each}
   </div>
 </button>
 
