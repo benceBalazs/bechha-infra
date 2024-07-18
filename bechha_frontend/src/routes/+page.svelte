@@ -6,8 +6,6 @@
 	import Videoplayer from '$lib/Videoplayer.svelte';
 
 	let activeType: CardType = CardType.Browse;
-	let contentActive: boolean = false;
-	let browseActive: boolean = true;
 	let searchResult: Promise<SearchResult> = apiConnector.search(
 		[''],
 		1,
@@ -61,12 +59,8 @@
 	}
 
 	function handleActivate(event: any) {
-    console.log("in handle activate")
 		let activatedType = (event.detail.type as CardType);
 		if (activatedType == CardType.Browse) {
-      activeType = CardType.Browse;
-			contentActive = false;
-			browseActive = true;
 			if(searchTags.length > 0) {
 				searchResult = apiConnector.search(
 				event.detail.selected,
@@ -78,9 +72,6 @@
 			);
 			}
 		} else if (activatedType == CardType.ContentSearch) {
-      activeType = CardType.ContentSearch;
-			contentActive = true;
-			browseActive = false;
 			searchResult = apiConnector.search(
 				event.detail.selected,
 				activePage,
@@ -284,7 +275,6 @@
 					selected={searchTags}
 					on:activate={handleActivate}
 					on:tagselection={handleTagSelection}
-					bind:active={contentActive}
 				/>
 			</div>
 			<div class="card-container justify-self-start">
@@ -293,7 +283,6 @@
 					options={['VideoID']}
 					selected={searchTags}
 					on:activate={handleActivate}
-					bind:active={browseActive}
 				/>
 			</div>
 		</div>
