@@ -22,7 +22,7 @@ class ApiConnector {
 	async search(
 		tags: string[],
 		page: number = 1,
-		limit: number = 10,
+		limit: number = 12,
 		direction: string,
 		orderBy: string,
 		type: CardType
@@ -31,7 +31,7 @@ class ApiConnector {
 			return mockApi.search(tags, page, limit);
 		}
 		let url = `${this.baseUrl}/search`;
-		if (type == CardType.ContentSearch) {
+		if (type == CardType.ContentSearch && tags.length > 0) {
 			url += `?tags=${tags.join(',')}`;
 			url += `&page=${page}`;
 			url += `&limit=${limit}`;

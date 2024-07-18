@@ -7,3 +7,4 @@ logs
 dist
 notebooks
 unused
+processed_test_data

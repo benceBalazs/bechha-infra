@@ -16,15 +16,15 @@
 	}
 
 	export let type: CardType;
-	export let active: boolean = false;
-
-	export let options: string[] = ['Han Solo', 'Greedo'];
+	export let active: boolean;
+	export let options: string[];
 
 	onMount(() => {});
 
 	const dispatch = createEventDispatcher();
 
 	function activateCard() {
+    console.log("Activate inner: "+type)
 		dispatch('activate', {
 			type,
 			selected

@@ -3,22 +3,21 @@
 	import SearchCard from '$lib/SearchCard.svelte';
 	import { CardType, type SearchResult, type SearchResultDetail } from '$lib/types';
 	import { onMount } from 'svelte';
-	import SampleImage from '$lib/samples/00100_frame0009.jpg';
 	import Videoplayer from '$lib/Videoplayer.svelte';
-	import Layout from './+layout.svelte';
 
 	let activeType: CardType = CardType.Browse;
-	let isSearchActive: boolean = false;
+	let contentActive: boolean = false;
+	let browseActive: boolean = true;
 	let searchResult: Promise<SearchResult> = apiConnector.search(
 		[''],
 		1,
-		8,
+		12,
 		'desc',
-		'extracedFrom',
+		'extractedFrom',
 		CardType.Browse
 	);
-	let availableTags: string[];
-	let searchTags: string[];
+	let availableTags: string[] = [];
+	let searchTags: string[] = [];
 	let submission: string = 'no';
 	let taskname: string = 'default';
 	let selectedItem: SearchResultDetail = {
@@ -62,9 +61,14 @@
 	}
 
 	function handleActivate(event: any) {
-		let activatedType = event.detail.type;
-		if (activatedType === CardType.Browse) {
-			searchResult = apiConnector.search(
+    console.log("in handle activate")
+		let activatedType = (event.detail.type as CardType);
+		if (activatedType == CardType.Browse) {
+      activeType = CardType.Browse;
+			contentActive = false;
+			browseActive = true;
+			if(searchTags.length > 0) {
+				searchResult = apiConnector.search(
 				event.detail.selected,
 				activePage,
 				12,
@@ -72,10 +76,11 @@
 				'extractedFrom',
 				CardType.Browse
 			);
-
-			isSearchActive = false;
-			activeType = CardType.Browse;
-		} else if (activatedType === CardType.ContentSearch) {
+			}
+		} else if (activatedType == CardType.ContentSearch) {
+      activeType = CardType.ContentSearch;
+			contentActive = true;
+			browseActive = false;
 			searchResult = apiConnector.search(
 				event.detail.selected,
 				activePage,
@@ -84,9 +89,6 @@
 				'extractedFrom',
 				CardType.ContentSearch
 			);
-
-			isSearchActive = true;
-			activeType = CardType.ContentSearch;
 		}
 	}
 
@@ -103,9 +105,7 @@
 	}
 
 	async function selectPage(page: number, searchresult: SearchResult) {
-		let selectedCard = CardType.ContentSearch;
-		if (!isSearchActive) selectedCard = CardType.Browse;
-		searchResult = apiConnector.search(searchTags, page, 12, 'desc', 'extractedFrom', selectedCard);
+		searchResult = apiConnector.search(searchTags, page, 12, 'desc', 'extractedFrom', activeType);
 		activePage = page;
 	}
 
@@ -284,7 +284,7 @@
 					selected={searchTags}
 					on:activate={handleActivate}
 					on:tagselection={handleTagSelection}
-					active={activeType === CardType.ContentSearch}
+					bind:active={contentActive}
 				/>
 			</div>
 			<div class="card-container justify-self-start">
@@ -293,7 +293,7 @@
 					options={['VideoID']}
 					selected={searchTags}
 					on:activate={handleActivate}
-					active={activeType === CardType.Browse}
+					bind:active={browseActive}
 				/>
 			</div>
 		</div>
@@ -466,14 +466,6 @@
 </div>
 
 <style>
-	.scrollable-container {
-		display: flex;
-		gap: 1rem;
-		padding: 0.5rem;
-		overflow-x: auto;
-		height: 100%;
-	}
-
 	.card-container {
 		flex: 1 0 auto;
 		min-width: 300px;
