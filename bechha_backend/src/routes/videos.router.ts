@@ -9,6 +9,13 @@ import { CONFIG } from "@/app";
 
 const router: Router = express.Router();
 
+/**
+ * Streams a video for a given video identifier.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @return {void} This function does not return anything.
+ */
 const streamVideo = (req: Request, res: Response) => {
 	const { id } = req.params;
 
@@ -45,6 +52,13 @@ const streamVideo = (req: Request, res: Response) => {
 	});
 };
 
+/**
+ * Retrieves a video for a given video identifier.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @return {Promise<void>} This function does not return anything.
+ */
 const retrieveVideo = async (req: Request, res: Response) => {
 	try {
 		const video = await Video.findOne({ datasetId: req.params.id });
@@ -68,6 +82,13 @@ const retrieveVideo = async (req: Request, res: Response) => {
 	}
 };
 
+/**
+ * Retrieves video data for a given video identifier.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @return {Promise<void>} This function does not return anything.
+ */
 const retrieveVideoData = async (req: Request, res: Response) => {
 	try {
 		const video = await Video.findOne({ datasetId: req.params.id });
@@ -84,6 +105,13 @@ const retrieveVideoData = async (req: Request, res: Response) => {
 	}
 };
 
+/**
+ * Retrieves metadata for a given video identifier.
+ *
+ * @param {Request} req - The request object.
+ * @param {Response} res - The response object.
+ * @return {Promise<void>} This function does not return anything.
+ */
 const retrieveMetadata = async (req: Request, res: Response) => {
 	try {
 		const videoInfo = await VideoInfo.findOne({ basedOn: req.params.id });
@@ -99,24 +127,28 @@ const retrieveMetadata = async (req: Request, res: Response) => {
 	}
 };
 
+// Video stream endpoint
 router
 	.route("/video/:id/stream")
-	.get(streamVideo)
-	.all(RouteNotImplemented);
+	.get(streamVideo) // Stream a video
+	.all(RouteNotImplemented); // Handle unimplemented methods
 
+// Video retrieval endpoint
 router
 	.route("/video/:id/video")
-	.get(retrieveVideo)
-	.all(RouteNotImplemented);
+	.get(retrieveVideo) // Retrieve a video
+	.all(RouteNotImplemented); // Handle unimplemented methods
 
+// Video data endpoint
 router
 	.route("/video/:id/videodata")
-	.get(retrieveVideoData)
-	.all(RouteNotImplemented);
+	.get(retrieveVideoData) // Retrieve video data
+	.all(RouteNotImplemented); // Handle unimplemented methods
 
+// Video metadata endpoint
 router
 	.route("/video/:id/metadata")
-	.get(retrieveMetadata)
-	.all(RouteNotImplemented);
+	.get(retrieveMetadata) // Retrieve video metadata
+	.all(RouteNotImplemented); // Handle unimplemented methods
 
 export default router;

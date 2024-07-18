@@ -1,13 +1,21 @@
+/**
+ * Handles the search routes.
+ * - /search: searches for segments based on tags, page and limit.
+ * - /tags: returns all distinct tags.
+ */
 import Segment, { ISegment } from "@Models/segment";
 import { TagSearchParam } from "@Types";
-import {RouteNotImplemented } from "@Utils";
+import { RouteNotImplemented } from "@Utils";
 import express, { Request, Response, Router } from "express";
 
 const router: Router = express.Router();
 
+/**
+ * Processes the search query.
+ * @param req The request object.
+ * @param res The response object.
+ */
 const processSearchQuery = async (req: Request, res: Response) => {
-	//localhost:3000/search?page=1&orderBy=00100&direction=desc&limit=10
-
 	// Parsing tags as an array of strings
 	const tagsArray = req.query.tags ? (req.query.tags as string).split(",") : null;
 	let params: TagSearchParam = {
@@ -47,6 +55,12 @@ const processSearchQuery = async (req: Request, res: Response) => {
 	});
 };
 
+/**
+ * Returns all distinct tags.
+ *
+ * @param req The request object.
+ * @param res The response object.
+ */
 const getTags = async (req: Request, res: Response) => {
 	let tags = await Segment.distinct("tokens");
 	res.status(200).json(tags);
