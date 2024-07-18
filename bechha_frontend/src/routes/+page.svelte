@@ -62,6 +62,7 @@
 		let activatedType = event.detail.type as CardType;
 		activePage = 1;
 		if (activatedType == CardType.Browse) {
+			activeType = CardType.Browse;
 			if (searchTags.length > 0) {
 				searchResult = apiConnector.search(
 					event.detail.selected,
@@ -73,6 +74,7 @@
 				);
 			}
 		} else if (activatedType == CardType.ContentSearch) {
+			activeType = CardType.ContentSearch;
 			searchResult = apiConnector.search(
 				event.detail.selected,
 				activePage,
