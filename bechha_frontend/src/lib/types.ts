@@ -46,3 +46,21 @@ export interface Task {
       finished: number | null;
   };
 }
+
+export interface Answer {
+  text: string | null;
+  mediaItemName: string; // dataset ID e.g. 00100
+  mediaItemCollectionName: string;
+  start: number; // milliseconds
+  end: number; // milliseconds
+}
+
+export interface AnswerSet {
+  taskId: string;
+  taskName: string;
+  answers: Answer[]
+}
+
+export interface DRESsubmit {
+  answerSets: AnswerSet[];
+}

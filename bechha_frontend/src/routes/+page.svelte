@@ -4,9 +4,6 @@
 	import { CardType, type SearchResult, type SearchResultDetail } from '$lib/types';
 	import { onMount } from 'svelte';
 	import Videoplayer from '$lib/Videoplayer.svelte';
-
-	import { PUBLIC_DRES_API_USERNAME, PUBLIC_DRES_API_PASSWORD } from '$env/static/public';
-	import axios from 'axios';
 	let activeType: CardType = CardType.Browse;
 	let searchResult: Promise<SearchResult> = apiConnector.search(
 		[''],
@@ -119,87 +116,30 @@
 		document.cookie = `${name}=${value}; SameSite=None; ${expires}; path=/`;
 	}
 
-	// For cross-origin requests, set withCredentials to true
-	axios.defaults.withCredentials = true;
-
-	// Function to make a request and store cookies
-	async function makeRequest(url, method = 'GET', data = null) {
-		try {
-			const requestInit: RequestInit = {
-				method: method,
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				credentials: 'include',
-				body: data ? JSON.stringify(data) : undefined
-			};
-
-			const response = await fetch(url, requestInit);
-
-			// Return the response data
-			return await response.json();
-		} catch (error) {
-			console.error('Error making request:', error);
-			throw error;
-		}
-	}
-
 	async function handleSubmit() {
 		// Set submission to "submitting"
 		submission = 'submitting';
 
 		try {
-			// Initial request to set cookies
-			const initialResponse = await makeRequest(
-				'https://vbs.videobrowsing.org/api/v2/login',
-				'POST',
-				{
-					username: PUBLIC_DRES_API_USERNAME,
-					password: PUBLIC_DRES_API_PASSWORD
-				} as any
-			);
-			console.log('Initial Response:', initialResponse);
-			// setCookie('SESSIONID', response.data.sessionId, 99);
-			// console.log(response.data.sessionId);
-			document.cookie += `SESSIONID=${initialResponse.sessionId}; SameSite=None; path=/`;
-			console.log(document.cookie);
-			const listResponse = await makeRequest(
-				'https://vbs.videobrowsing.org/api/v2/evaluation/info/list'
-			);
-
-			if (!listResponse.data) {
-				throw new Error('Failed to fetch evaluations');
-			}
-
-			const evaluations = listResponse.data;
-			const evaluation = evaluations.find((e) => e.name === 'IVADL2024');
-
-			if (!evaluation) {
-				throw new Error('Evaluation IVADL2024 not found');
-			}
-
-			const evaluationId = evaluation.id;
-
 			let evaluation_req = await fetch(
-				`https://vbs.videobrowsing.org/api/v2/submit/${evaluationId}`,
+				`http://localhost:3000/submit`,
 				{
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					credentials: 'include',
 					body: JSON.stringify({
 						answerSets: [
 							{
-								taskId: evaluationId, // Replace with actual task ID
-								taskName: taskname, // Replace with actual task name
+								taskId: "default",
+								taskName: taskname,
 								answers: [
 									{
 										text: null,
 										mediaItemName: selectedItem.extractedFrom,
 										mediaItemCollectionName: 'IVADL',
 										start: selectedItem.starting_time,
-										end: 0 + selectedItem.ending_time
+										end: selectedItem.ending_time
 									}
 								]
 							}
