@@ -4,17 +4,26 @@ export enum CardType {
   Browse
 }
 
+export interface SearchResultDetail {
+  fileName: string,
+  extractedFrom: string,
+  starting_frame: number,
+  ending_frame: number,
+  starting_time: number,
+  ending_time: number,
+  frames: number,
+  duration: number,
+  frameUrl: string,
+  description: string,
+  tokens: string[],
+  category: string[]
+}
+
 export interface SearchResult {
-    extractedFrom: string,
-    starting_frame: number,
-    ending_frame: number,
-    starting_time: number,
-    ending_time: number,
-    frames: number,
-    duration: number,
-    frameUrl: string,
-    description: string,
-    tokens: string[]
+    results: SearchResultDetail[],
+    page: number,
+    limit: number,
+    totalResults: number
 }
 
 export interface Video {
