@@ -16,9 +16,7 @@
 	}
 
 	export let type: CardType;
-	export let active: boolean = false;
-
-	export let options: string[] = ['Han Solo', 'Greedo'];
+	export let options: string[];
 
 	onMount(() => {});
 
@@ -34,13 +32,7 @@
 
 <button
 	type="button"
-	class="border rounded-lg p-4 cursor-pointer transition-transform transform hover:scale-105 h-full flex flex-col justify-between"
-	class:shadow-lg={active}
-	class:border-black={active}
-	class:border-gray-300={!active}
-	class:opacity-80={!active}
-	class:opacity-100={active}
-	on:click={activateCard}
+	class="border rounded-lg p-4 border-black transition-transform transform h-full flex flex-col justify-between"
 	aria-label={type === CardType.ContentSearch ? 'Content Search' : 'Browse'}
 >
 	<div class="w-full h-full">
@@ -48,15 +40,6 @@
 			<h2 class="text-lg font-bold">
 				{type === CardType.ContentSearch ? 'Content Search' : 'Browse'}
 			</h2>
-			{#if active}
-				<input
-					type="checkbox"
-					bind:checked={active}
-					class="checkbox checkbox-primary border-black"
-				/>
-			{:else}
-				<input type="checkbox" class="checkbox checkbox-primary border-black opacity-80" />
-			{/if}
 		</div>
 		{#if type === CardType.ContentSearch}
 			<div class="w-full">
@@ -69,13 +52,14 @@
 				/>
 			</div>
 		{:else if type === CardType.Browse}
-			<select class="select select-bordered w-full">
+			<select class="select select-bordered w-full select-sm">
 				{#each options as option}
 					<option>{option}</option>
 				{/each}
 			</select>
 		{/if}
 	</div>
+	<button on:click={activateCard} class="btn btn-outline btn-xs">Search</button>
 </button>
 
 <style>
