@@ -4,7 +4,6 @@
 	import MultiSelect from 'svelte-multiselect';
 	let loading = false;
 	export let selected: string[];
-
 	export let type: CardType;
 	export let options: string[];
 

@@ -97,7 +97,7 @@
 	}
 
 	async function selectPage(page: number, searchresult: SearchResult) {
-		searchResult = apiConnector.search(searchTags, page, 12, 'desc', 'extractedFrom', activeType);
+		searchResult = apiConnector.search(searchTags, page, 12, 'asc', 'extractedFrom', activeType);
 		activePage = page;
 	}
 
@@ -248,7 +248,7 @@
 				<SearchCard
 					type={CardType.ContentSearch}
 					options={availableTags}
-					selected={searchTags}
+					bind:selected={searchTags}
 					on:activate={handleActivate}
 				/>
 			</div>
@@ -256,7 +256,7 @@
 				<SearchCard
 					type={CardType.Browse}
 					options={['VideoID']}
-					selected={searchTags}
+					bind:selected={searchTags}
 					on:activate={handleActivate}
 				/>
 			</div>
