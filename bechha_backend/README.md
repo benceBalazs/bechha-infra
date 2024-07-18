@@ -54,5 +54,18 @@ Ensure you have [Docker](https://www.docker.com/) and [Docker Compose](https://d
 
 Specify your env variables in the `docker-compose.yml` and dont forget to share the folders of the dataset and processed_dataset to the docker environment.
 
+## Backend Implementation
+
+This backend system is implemented using Node.js, Express and MongoDB. The system is designed to handle the following functionalities:
+
+1. **Video Storage**: The system provides a mechanism to reference videos. The videos are stored on the filesytem and linked in a MongoDB database, which are associated with various meta-data such as tags, descriptions, and categories.
+
+2. **Video Retrieval**: The system provides an API to search and retrieve videos based on various criteria such as labels.
+
+3. **Video Processing**: The system provides a mechanism to pre-process and store video data such as frames and scene descriptions. This data is used to support the search functionality.
+
+4. **API Documentation**: The system is documented using Postman and provides a detailed API description.
+
+5. **Dockerization**: The system is designed to be run as a Docker container, making it easy to deploy and manage.
 
 
