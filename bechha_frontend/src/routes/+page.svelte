@@ -4,63 +4,64 @@
 	import { CardType, type SearchResult, type SearchResultDetail } from '$lib/types';
 	import { onMount } from 'svelte';
 	import SampleImage from '$lib/samples/00100_frame0009.jpg';
-	import Videoplayer, { source } from '$lib/Videoplayer.svelte';
+	import Videoplayer from '$lib/Videoplayer.svelte';
 
 	let activeType: CardType = CardType.ContentSearch;
-  let isSearchActive: boolean = true;
-  let searchResult: Promise<SearchResult> = apiConnector.search(["test"],1,8);
-  let availableTags: string[];
-  let searchTags: string[];
-  let selectedItem: SearchResultDetail = {
-            fileName: "00199_frame0144.jpg",
-            extractedFrom: "00199",
-            starting_frame: 21592,
-            ending_frame: 21837,
-            starting_time: 863679,
-            ending_time: 873480,
-            frames: 245,
-            duration: 9801,
-            frameUrl: "segment/00199/00199_frame0144.jpg",
-            description: "a man standing on top of a rock",
-            tokens: [
-                "cliff",
-                "man",
-                "standing",
-                "top",
-                "rock"
-            ],
-            category: [
-                "cliff"
-            ]
-        };
+	let isSearchActive: boolean = true;
+	let searchResult: Promise<SearchResult> = apiConnector.search(['man'], 1, 8);
+	let availableTags: string[];
+	let searchTags: string[];
+	let selectedItem: SearchResultDetail = {
+		fileName: '00199_frame0144.jpg',
+		extractedFrom: '00199',
+		starting_frame: 21592,
+		ending_frame: 21837,
+		starting_time: 863679,
+		ending_time: 873480,
+		frames: 245,
+		duration: 9801,
+		frameUrl: 'segment/00199/00199_frame0144.jpg',
+		description: 'a man standing on top of a rock',
+		tokens: ['cliff', 'man', 'standing', 'top', 'rock'],
+		category: ['cliff']
+	};
 
+	onMount(() => {
+		getAvailableTags();
+	});
 
-
-  onMount(() => {
-    getAvailableTags();
-  });
-
-  function openDetailModal(item: SearchResultDetail) {
-		  (document.getElementById('detailModal') as HTMLDialogElement).showModal();
+	function openDetailModal(item: SearchResultDetail) {
+		selectedItem = item;
+		(document.getElementById('detailModal') as HTMLDialogElement).showModal();
 	}
 
-  function getAvailableTags() {
-    apiConnector.getTags().then((tags: string[]) => {
-      availableTags = tags;
-      console.log(availableTags);
-    }).catch(error => {
-      console.log(error);
-    })
-  }
+	function getAvailableTags() {
+		apiConnector
+			.getTags()
+			.then((tags: string[]) => {
+				availableTags = tags;
+				console.log(availableTags);
+			})
+			.catch((error) => {
+				console.log(error);
+			});
+	}
 
 	function handleActivate(event: any) {
 		activeType = event.detail;
-    isSearchActive = !isSearchActive;
+		isSearchActive = !isSearchActive;
 	}
 
-  async function handleTagSelection(event: any) {
+	async function handleTagSelection(event: any) {
 		console.log(event.detail.selected);
-    searchResult = apiConnector.search(event.detail.selected,1,8);
+		searchResult = apiConnector.search(event.detail.selected, 1, 8);
+	}
+	function convertMilliseconds(ms: number): string {
+		const minutes = Math.floor(ms / 60000);
+		const seconds = Math.floor((ms % 60000) / 1000);
+		const formattedSeconds = seconds < 10 ? '0' + seconds : seconds;
+
+		return `${minutes}m ${formattedSeconds}s`;
 	}
 </script>
 
@@ -101,106 +102,125 @@
 	<div class="grid grid-rows-6 w-full h-[92.5%]">
 		<div class="w-full h-full row-span-1 grid grid-cols-2 gap-4">
 			<!-- Main Area -->
-				<div class="card-container justify-self-end">
-					<SearchCard
-						type={CardType.ContentSearch}
-						checked={isSearchActive}
-            options={availableTags}
-            selected={searchTags}
-						on:activate={handleActivate}
-            on:tagselection={handleTagSelection}
-						active={activeType === CardType.ContentSearch}
-					/>
-				</div>
-				<div class="card-container justify-self-start">
-					<SearchCard
-						type={CardType.Browse}
-						checked={!isSearchActive}
-						options={['VideoID']}
-            selected={searchTags}
-						on:activate={handleActivate}
-						active={activeType === CardType.Browse}
-					/>
-				</div>
+			<div class="card-container justify-self-end">
+				<SearchCard
+					type={CardType.ContentSearch}
+					checked={isSearchActive}
+					options={availableTags}
+					selected={searchTags}
+					on:activate={handleActivate}
+					on:tagselection={handleTagSelection}
+					active={activeType === CardType.ContentSearch}
+				/>
+			</div>
+			<div class="card-container justify-self-start">
+				<SearchCard
+					type={CardType.Browse}
+					checked={!isSearchActive}
+					options={['VideoID']}
+					selected={searchTags}
+					on:activate={handleActivate}
+					active={activeType === CardType.Browse}
+				/>
+			</div>
 		</div>
 		<div class="w-full h-[calc(100% - 1.25rem)] row-span-5 mt-5">
 			<!-- Results -->
-      {#await searchResult}
-        <div class="grid place-content-center w-full h-full">
-          <h1 class="text-4xl font-bold">Waiting for query</h1>
-        </div>
-      {:then value}
-      <div
-        class="w-full h-[80%] flex flex-row flex-wrap justify-center gap-4 overflow-y-auto shadow-inner"
-      >
-        {#each value.results as item}
-          <button
-            class="card bg-base-100 shadow-xl basis-1/5 border cursor-pointer"
-            on:click={() => openDetailModal(item)}
-          >
-            <figure class="w-full">
-              <img class="aspect-video w-full" src={apiConnector.getThumbnail(item.frameUrl)} alt="Movie" />
-            </figure>
-            <div class="card-body p-2">
-              <h2 class="card-title text-sm">VideoID: <em>{item.fileName}</em></h2>
-              <p class="text-sm">Time: | <em>{item.starting_time}</em> - <em>{item.ending_time}</em> | <b>ms</b></p>
-            </div>
-          </button>
-        {/each}
-      </div>
-      <div class="grid w-full h-[20%] place-content-center">
-        <div class="join">
-          <button class="join-item btn btn-active">1</button>
-        </div>
-      </div>
+			{#await searchResult}
+				<div class="grid place-content-center w-full h-full">
+					<h1 class="text-4xl font-bold">Waiting for query</h1>
+				</div>
+			{:then value}
+				<div
+					class="w-full h-[80%] flex flex-row flex-wrap justify-center gap-4 overflow-y-auto shadow-inner"
+				>
+					{#each value.results as item}
+						<button
+							class="card card-compact bg-base-100 w-96 shadow-xl basis-1/5 border cursor-pointer"
+							on:click={() => openDetailModal(item)}
+						>
+							<figure class="w-full">
+								<img
+									class="aspect-video w-full"
+									src={apiConnector.getThumbnail(item.frameUrl)}
+									alt="Movie"
+								/>
+							</figure>
+							<div class="card-body p-0">
+								<h2 class="card-title text-sm">
+                  <em>
+                    <div class="badge badge-secondary">{item.extractedFrom}</div>
+                    {item.fileName}
+                  </em>
+								</h2>
+								<span class="text-xs">
+									Time: | <em>{item.starting_time}</em> - <em>{item.ending_time}</em> | <b>ms</b>
+								</span>
+								<span class="text-xs">
+									Time: <em>{convertMilliseconds(item.starting_time)}</em> -
+									<em>{convertMilliseconds(item.ending_time)}</em>
+								</span>
+								<div class="card-actions justify-center">
+									{#each item.tokens as token}
+										<div class="badge badge-outline text-xs">{token}</div>
+									{/each}
+								</div>
+							</div>
+						</button>
+					{/each}
+				</div>
+				<div class="grid w-full h-[20%] place-content-center">
+					<div class="join">
+						<button class="join-item btn btn-active">1</button>
+					</div>
+				</div>
 
-      <dialog id="detailModal" class="modal">
-        <div class="modal-box w-11/12 max-w-6xl grid grid-cols-3 gap-4">
-          <div class="w-full col-span-1 flex flex-col gap-4">
-            <h3 class="text-lg font-bold">VideoID: {selectedItem.extractedFrom}</h3>
-            <p class="overflow-y-auto max-h-24 shadow-inner">
-              Description: {selectedItem.description}
-            </p>
-            <p class="text-sm">
-              Time: | <em>{selectedItem.starting_time}</em> -
-              <em>{selectedItem.ending_time}</em> | (in ms)
-            </p>
-            <p class="text-sm">
-              Frames: | <em>{selectedItem.starting_frame}</em> -
-              <em>{selectedItem.ending_frame}</em> |
-            </p>
-            <p class="py-4">Duration: {selectedItem.duration} (in ms)</p>
-            <div>
-              <h3 class="font-bold mb-2"><u>Tokens</u></h3>
-              <div class="flex flex-row gap-2 overflow-x-auto p-2 shadow-inner">
-                {#each selectedItem.tokens as token}
-                  <div class="badge badge-outline">{token}</div>
-                {/each}
-              </div>
-            </div>
-            <button class="btn btn-outline">
-              <span class="loading loading-spinner"></span>
-              Waiting for DRES reply
-            </button>
-          </div>
-          <div class="w-full h-full col-span-2 aspect-auto">
-            <Videoplayer 
-            source={apiConnector.getVideoStream(selectedItem.extractedFrom)}
-            startTime={selectedItem.starting_time}
-            endTime={selectedItem.ending_time}
-            />
-          </div>
-        </div>
-        <form method="dialog" class="modal-backdrop">
-          <button>close</button>
-        </form>
-      </dialog>
-
-      {:catch error}
-        <div class="grid place-content-center w-full h-full">
-          <h1 class="text-4xl font-bold">Error retrieving: {error}</h1>
-        </div>
-      {/await}
+				<dialog id="detailModal" class="modal">
+					<div class="modal-box w-11/12 max-w-6xl grid grid-cols-3 gap-4">
+						<div class="w-full col-span-1 flex flex-col gap-4">
+							<h3 class="text-lg font-bold">VideoID: {selectedItem.extractedFrom}</h3>
+							<p class="overflow-y-auto max-h-24 shadow-inner">
+								Description: {selectedItem.description}
+							</p>
+							<p class="text-sm">
+								Time: | <em>{selectedItem.starting_time}</em> -
+								<em>{selectedItem.ending_time}</em> | (in ms)
+							</p>
+							<p class="text-sm">
+								Frames: | <em>{selectedItem.starting_frame}</em> -
+								<em>{selectedItem.ending_frame}</em> |
+							</p>
+							<p class="py-4">Duration: {selectedItem.duration} (in ms)</p>
+							<div>
+								<h3 class="font-bold mb-2"><u>Tokens</u></h3>
+								<div class="flex flex-row gap-2 overflow-x-auto p-2 shadow-inner">
+									{#each selectedItem.tokens as token}
+										<div class="badge badge-outline">{token}</div>
+									{/each}
+								</div>
+							</div>
+							<button class="btn btn-outline">
+								<span class="loading loading-spinner"></span>
+								Waiting for DRES reply
+							</button>
+						</div>
+						<div class="w-full h-full col-span-2 aspect-auto">
+							<Videoplayer
+								source={apiConnector.getVideoStream(selectedItem.extractedFrom)}
+								startTime={selectedItem.starting_time}
+								endTime={selectedItem.ending_time}
+							/>
+						</div>
+					</div>
+					<form method="dialog" class="modal-backdrop">
+						<button>close</button>
+					</form>
+				</dialog>
+			{:catch error}
+				<div class="grid place-content-center w-full h-full">
+					<h1 class="text-4xl font-bold">Error retrieving: {error}</h1>
+				</div>
+			{/await}
 		</div>
 	</div>
 </div>

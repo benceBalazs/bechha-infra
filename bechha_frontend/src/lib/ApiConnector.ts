@@ -1,8 +1,8 @@
 // src/lib/ApiConnector.ts
-import type { Video, Task, SearchResult } from './types';
+import type { SearchResult } from './types';
 import { mockApi } from './MockApi';
 
-const USE_MOCK_API = true;
+const USE_MOCK_API = false;
 
 class ApiConnector {
     private baseUrl: string;
@@ -31,23 +31,23 @@ class ApiConnector {
         if (USE_MOCK_API) {
             return mockApi.getVideoStream(videoId);
         }
-        return `${this.baseUrl}/${videoId}/stream`;
+        return `${this.baseUrl}/video/${videoId}/stream`;
     }
 
-    async getVideoMetadata(videoId: string): Promise<any> {
+    async getVideoMetadata(videoId: string): Promise<unknown> {
         if (USE_MOCK_API) {
             return mockApi.getVideoMetadata(videoId);
         }
         const url = `${this.baseUrl}/video/${videoId}/metadata`;
-        return this.fetchApi<any>(url);
+        return this.fetchApi<unknown>(url);
     }
 
-    async getVideoInfo(videoId: string): Promise<any> { // Adjust the type as needed
+    async getVideoInfo(videoId: string): Promise<unknown> { // Adjust the type as needed
         if (USE_MOCK_API) {
             return mockApi.getVideoInfo(videoId);
         }
         const url = `${this.baseUrl}/video/${videoId}/videodata`;
-        return this.fetchApi<any>(url); // Adjust the type as needed
+        return this.fetchApi<unknown>(url); // Adjust the type as needed
     }
 
     async downloadVideo(videoId: string): Promise<Blob> {
@@ -55,7 +55,7 @@ class ApiConnector {
             return mockApi.downloadVideo(videoId);
         }
         const url = `${this.baseUrl}/video/${videoId}/video`;
-        const response = await this.fetchApi<any>(url, {});
+        const response = await this.fetchApi(url, {}) as any;
         if (!response.ok) {
             throw new Error(`Error downloading video from ${url}: ${response.statusText}`);
         }
