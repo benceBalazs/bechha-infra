@@ -1,4 +1,4 @@
-import fsSync from "fs";
+import fsSync, { Dirent } from "fs";
 import winston from "winston";
 
 import { promises as fs } from "fs";
@@ -137,6 +137,16 @@ export async function connectToDatabase(url: string): Promise<void> {
 }
 
 import {Request, Response} from "express";
+import path from "path";
 export const RouteNotImplemented = (req: Request, res: Response) => {
 	res.sendStatus(405);
+};
+
+export const processDataFolder = async (directoryPath: string, predicate: (folder: string) => Promise<void>) => {
+    let datasetFolders = (await fs.readdir(directoryPath, { withFileTypes: true }))
+        .filter((dirent: Dirent) => dirent.isDirectory() && /^\d+$/.test(dirent.name))
+        .map((dirent) => dirent.name)
+        .map((folder) => predicate(path.join(directoryPath, folder)));
+
+    await Promise.allSettled(datasetFolders);
 };

@@ -12,12 +12,12 @@ export async function parseUnprocessedData(folder: string) {
 	const id = infoFile ? extractIdFromName(infoFile) : null;
 
 	if (!id) {
-		LOGGER.warn(`Unable to parse .json in ${folder}`);
+		LOGGER.error(`Unable to parse .json in ${folder}`);
 		return;
 	}
 
 	const jsonData = await readJsonFile(path.join(folder, `${id}.info.json`));
-	LOGGER.debug(jsonData);
+	
 	const videoInfo = new VideoInfo({ basedOn: id, ...jsonData });
 
 	let exists = await VideoInfo.exists({ basedOn: id });

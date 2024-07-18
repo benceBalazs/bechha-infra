@@ -39,7 +39,7 @@ async function processFiles(directoryPath: string): Promise<ISegment[]> {
 
 		// Filter and process scene JSON files
 		const sceneFiles = files.filter((file) =>
-			file.endsWith("00100_scenes_descriptions_categories.json")
+			file.endsWith("_scenes_descriptions_categories.json")
 		);
 		for (const sceneFile of sceneFiles) {
 			const id = sceneFile.split("_")[0];
@@ -80,9 +80,10 @@ export async function parseProcessedData(folder: string) {
 	let res = segmentsToSave.map((segment: ISegment) => {
 		return "\t" + segment.fileName;
 	});
-	LOGGER.info(
-		`The following segments have been saved successfully ${
-			res.length != 0 ? "[\n" + res.join(",\n") + "\n]" : "[]"
-		}`
-	);
+	if (res.length === 0) {
+		LOGGER.info(`No new segments found from ${folder}`);
+	} else {
+		LOGGER.info(`Found new segments from ${folder}`);
+		LOGGER.info("[\n" + res.join(",\n") + "\n]");
+	}
 }

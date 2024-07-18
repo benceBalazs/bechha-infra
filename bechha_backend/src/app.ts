@@ -1,4 +1,4 @@
-import { connectToDatabase, LOGGER } from "@Utils";
+import { connectToDatabase, LOGGER, processDataFolder, readDirectoryContents } from "@Utils";
 import "@/services/restService";
 import path from "path";
 
@@ -19,8 +19,6 @@ export const CONFIG = (() => {
 	return config;
 })();
 
-// createUploadsFolderIfNone();
-
 import REST_API from "@/services/restService";
 import { parseUnprocessedData } from "@Services/unprocessedDataImporter";
 import { parseProcessedData } from "@Services/processedDataImporter";
@@ -28,6 +26,7 @@ import { parseProcessedData } from "@Services/processedDataImporter";
 (async () => {
 	await connectToDatabase(CONFIG.MONGODB_URI);
 	REST_API(CONFIG.PORT);
-	await parseUnprocessedData(path.join(CONFIG.DATASET_PATH, "00100"));
-	await parseProcessedData(path.join(CONFIG.PROCESSED_DATASET_PATH, "00100"));
+	await processDataFolder(CONFIG.DATASET_PATH, parseUnprocessedData);
+	await processDataFolder(CONFIG.PROCESSED_DATASET_PATH, parseProcessedData);
+	LOGGER.info(`Finished importing data`);
 })();
