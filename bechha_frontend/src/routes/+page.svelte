@@ -3,18 +3,24 @@
 	import SearchCard from '$lib/SearchCard.svelte';
 	import { CardType, type SearchResult, type SearchResultDetail } from '$lib/types';
 	import { onMount } from 'svelte';
-  import { DRES_API_USERNAME, DRES_API_PASSWORD } from '$env/static/private';
 	import SampleImage from '$lib/samples/00100_frame0009.jpg';
 	import Videoplayer from '$lib/Videoplayer.svelte';
 	import Layout from './+layout.svelte';
 
-	let activeType: CardType = CardType.ContentSearch;
-	let isSearchActive: boolean = true;
-	let searchResult: Promise<SearchResult> = apiConnector.search(['man'], 1, 8, "desc", "extracedFrom", CardType.ContentSearch);
+	let activeType: CardType = CardType.Browse;
+	let isSearchActive: boolean = false;
+	let searchResult: Promise<SearchResult> = apiConnector.search(
+		[''],
+		1,
+		8,
+		'desc',
+		'extracedFrom',
+		CardType.Browse
+	);
 	let availableTags: string[];
 	let searchTags: string[];
-  let submission: string = "no"
-  let taskname: string = "default";
+	let submission: string = 'no';
+	let taskname: string = 'default';
 	let selectedItem: SearchResultDetail = {
 		fileName: '00199_frame0144.jpg',
 		extractedFrom: '00199',
@@ -29,10 +35,10 @@
 		tokens: ['cliff', 'man', 'standing', 'top', 'rock'],
 		category: ['cliff']
 	};
-  let activePage: number = 1;
-  $: if(availableTags) {
-    activePage = 1;
-  }
+	let activePage: number = 1;
+	$: if (availableTags) {
+		activePage = 1;
+	}
 
 	onMount(() => {
 		getAvailableTags();
@@ -56,25 +62,51 @@
 	}
 
 	function handleActivate(event: any) {
-		activeType = event.detail.type;
-		isSearchActive = !isSearchActive;
-    if (event.detail.type == CardType.Browse) {
-      searchResult = apiConnector.search(event.detail.selected, activePage, 12, "desc", "extractedFrom", CardType.Browse);
-    } else {
-      searchResult = apiConnector.search(event.detail.selected, activePage, 12, "desc", "extractedFrom", CardType.ContentSearch);
-    }
+		let activatedType = event.detail.type;
+		if (activatedType === CardType.Browse) {
+			searchResult = apiConnector.search(
+				event.detail.selected,
+				activePage,
+				12,
+				'desc',
+				'extractedFrom',
+				CardType.Browse
+			);
+
+			isSearchActive = false;
+			activeType = CardType.Browse;
+		} else if (activatedType === CardType.ContentSearch) {
+			searchResult = apiConnector.search(
+				event.detail.selected,
+				activePage,
+				12,
+				'desc',
+				'extractedFrom',
+				CardType.ContentSearch
+			);
+
+			isSearchActive = true;
+			activeType = CardType.ContentSearch;
+		}
 	}
 
 	async function handleTagSelection(event: any) {
 		console.log(event.detail.selected);
-    searchResult = apiConnector.search(event.detail.selected, activePage, 12, "desc", "extractedFrom", CardType.ContentSearch);
+		searchResult = apiConnector.search(
+			event.detail.selected,
+			activePage,
+			12,
+			'desc',
+			'extractedFrom',
+			CardType.ContentSearch
+		);
 	}
 
-  async function handlePageSelection(page: number, searchresult: SearchResult) {
-    let selectedCard = CardType.ContentSearch;
-    if(!isSearchActive) selectedCard = CardType.Browse;
-    searchResult = apiConnector.search(availableTags, page, 12, "desc", "extractedFrom", selectedCard);
-    activePage = page;
+	async function selectPage(page: number, searchresult: SearchResult) {
+		let selectedCard = CardType.ContentSearch;
+		if (!isSearchActive) selectedCard = CardType.Browse;
+		searchResult = apiConnector.search(searchTags, page, 12, 'desc', 'extractedFrom', selectedCard);
+		activePage = page;
 	}
 
 	function convertMilliseconds(ms: number): string {
@@ -85,83 +117,127 @@
 		return `${minutes}m ${formattedSeconds}s`;
 	}
 
-    async function handleSubmit() {
-    // Set submission to "submitting"
-    submission = "submitting";
-    
-    try {
-      let response = await fetch("https://vbs.videobrowsing.org/api/v2/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          username: DRES_API_USERNAME,
-          password: DRES_API_PASSWORD
-        })
-      });
+	async function handleSubmit() {
+		// Set submission to "submitting"
+		submission = 'submitting';
 
-      if (!response.ok) {
-        throw new Error("Login failed");
-      }
+		try {
+			let response = await fetch('https://vbs.videobrowsing.org/api/v2/login', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					username: import.meta.env.DRES_API_USERNAME,
+					password: import.meta.env.DRES_API_PASSWORD
+				})
+			});
 
-      response = await fetch("https://vbs.videobrowsing.org/api/v2/evaluation/info/list", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
+			if (!response.ok) {
+				throw new Error('Login failed');
+			}
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch evaluations");
-      }
+			response = await fetch('https://vbs.videobrowsing.org/api/v2/evaluation/info/list', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
 
-      const evaluations = await response.json();
-      const evaluation = evaluations.find(e => e.name === "IVADL2024");
+			if (!response.ok) {
+				throw new Error('Failed to fetch evaluations');
+			}
 
-      if (!evaluation) {
-        throw new Error("Evaluation IVADL2024 not found");
-      }
+			const evaluations = await response.json();
+			const evaluation = evaluations.find((e) => e.name === 'IVADL2024');
 
-      const evaluationId = evaluation.id;
+			if (!evaluation) {
+				throw new Error('Evaluation IVADL2024 not found');
+			}
 
-      response = await fetch(`https://vbs.videobrowsing.org/api/v2/submit/${evaluationId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          answerSets: [
-            {
-              taskId: evaluationId, // Replace with actual task ID
-              taskName: taskname, // Replace with actual task name
-              answers: [
-                {
-                  text: null,
-                  mediaItemName: selectedItem.extractedFrom,
-                  mediaItemCollectionName: "IVADL",
-                  start: selectedItem.starting_time,
-                  end: 0+selectedItem.ending_time
-                }
-              ]
-            }
-          ]
-        })
-      });
+			const evaluationId = evaluation.id;
 
-      if (!response.ok) {
-        throw new Error("Submission failed");
-      }
+			response = await fetch(`https://vbs.videobrowsing.org/api/v2/submit/${evaluationId}`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					answerSets: [
+						{
+							taskId: evaluationId, // Replace with actual task ID
+							taskName: taskname, // Replace with actual task name
+							answers: [
+								{
+									text: null,
+									mediaItemName: selectedItem.extractedFrom,
+									mediaItemCollectionName: 'IVADL',
+									start: selectedItem.starting_time,
+									end: 0 + selectedItem.ending_time
+								}
+							]
+						}
+					]
+				})
+			});
 
-      // Set submission to "success"
-      submission = "success";
+			if (!response.ok) {
+				throw new Error('Submission failed');
+			}
 
-    } catch (error) {
-      // Set submission to "error"
-      submission = "error";
-      console.error("Error:", error);
-    }
-  }
+			// Set submission to "success"
+			submission = 'success';
+		} catch (error) {
+			// Set submission to "error"
+			submission = 'error';
+			console.error('Error:', error);
+		}
+	}
+
+	interface PaginationResult {
+		left: number[];
+		current: number;
+		right: number[];
+		other: number[];
+	}
+
+	function paginate(
+		currentPage: number,
+		totalResults: number,
+		pagesPerResult: number,
+		padding: number
+	): PaginationResult {
+		const totalPages = Math.ceil(totalResults / pagesPerResult);
+
+		const startLeft = Math.max(1, currentPage - padding);
+		const endLeft = currentPage - 1;
+
+		const startRight = currentPage + 1;
+		const endRight = Math.min(totalPages, currentPage + padding);
+
+		const left: number[] = [];
+		for (let i = startLeft; i <= endLeft; i++) {
+			left.push(i);
+		}
+
+		const right: number[] = [];
+		for (let i = startRight; i <= endRight; i++) {
+			right.push(i);
+		}
+
+		const other: number[] = [];
+		const otherStart = Math.max(totalPages - padding + 1, endRight + 1);
+		for (let i = otherStart; i <= totalPages; i++) {
+			other.push(i);
+		}
+
+		return {
+			left: left,
+			current: currentPage,
+			right: right,
+			other: other
+		};
+	}
 </script>
 
 <div class="w-full h-full px-4">
@@ -204,7 +280,6 @@
 			<div class="card-container justify-self-end relative z-10">
 				<SearchCard
 					type={CardType.ContentSearch}
-					checked={isSearchActive}
 					options={availableTags}
 					selected={searchTags}
 					on:activate={handleActivate}
@@ -215,7 +290,6 @@
 			<div class="card-container justify-self-start">
 				<SearchCard
 					type={CardType.Browse}
-					checked={!isSearchActive}
 					options={['VideoID']}
 					selected={searchTags}
 					on:activate={handleActivate}
@@ -247,10 +321,10 @@
 							</figure>
 							<div class="card-body p-0">
 								<h2 class="card-title text-sm">
-                  <em>
-                    <div class="badge badge-secondary">{item.extractedFrom}</div>
-                    {item.fileName}
-                  </em>
+									<em>
+										<div class="badge badge-secondary">{item.extractedFrom}</div>
+										{item.fileName}
+									</em>
 								</h2>
 								<span class="text-xs">
 									Time: | <em>{item.starting_time}</em> - <em>{item.ending_time}</em> | <b>ms</b>
@@ -269,10 +343,54 @@
 					{/each}
 				</div>
 				<div class="grid w-full h-[20%] place-content-center">
+					<!-- <button class="join-item btn btn-disabled">...</button> -->
 					<div class="join">
-            {#each Array(Math.ceil(value.totalResults/12)) as page, index}
-              <button class="join-item btn" on:click={()=>{handlePageSelection(index, value)}}>{index}</button>
-            {/each}
+						{#each paginate(activePage, value.totalResults, value.limit, 5).left as page}
+							<button
+								class="join-item btn"
+								on:click={() => {
+									selectPage(page, value);
+								}}>{page}</button
+							>
+						{/each}
+						<button
+							class="join-item btn btn-primary"
+							on:click={() => {
+								selectPage(activePage, value);
+							}}>{activePage}</button
+						>
+						{#each paginate(activePage, value.totalResults, value.limit, 5).right as page}
+							<button
+								class="join-item btn"
+								on:click={() => {
+									selectPage(page, value);
+								}}>{page}</button
+							>
+						{/each}
+						<button class="join-item btn btn-disabled">...</button>
+
+						{#each paginate(activePage, value.totalResults, value.limit, 5).other as page}
+							<button
+								class="join-item btn"
+								on:click={() => {
+									selectPage(page, value);
+								}}>{page}</button
+							>
+						{/each}
+						<!-- {#if value.totalResults > 12}
+							{#each Array.from({ length: Math.ceil(value.totalResults / 12) }, (_, i) => i) as page, index}
+								{#if index === 0 || index === Math.ceil(value.totalResults / 12) - 1 || (index >= activePage - 2 && index <= activePage + 2)}
+									<button
+										class="join-item btn {page === activePage ? 'btn-primary' : ''}"
+										on:click={() => {
+											selectPage(page, value);
+										}}>{index + 1}</button
+									>
+								{:else if index === activePage - 3 || index === activePage + 3}
+									<button class="join-item btn btn-disabled">...</button>
+								{/if}
+							{/each}
+						{/if} -->
 					</div>
 				</div>
 
@@ -300,26 +418,31 @@
 									{/each}
 								</div>
 							</div>
-              <input
-              type="text"
-              placeholder="taskname"
-              class="input input-bordered input-sm w-full max-w-xs"
-              bind:value={taskname} 
-              />
-              {#if submission == "no"}
-                <button class="btn btn-outline" on:click={()=>{handleSubmit()}}>
-                  Submit <b>{selectedItem.extractedFrom}</b> to DRES
-                </button>
-              {:else if submission == "submitting"}
-                <button class="btn btn-outline" disabled>
-                  <span class="loading loading-ring"></span>
-                  Waiting for DRES reply
-                </button>
-              {:else if submission == "error"}
-                <button class="btn btn-error">Something went wrong</button>
-              {:else if submission == "success"}
-                <button class="btn btn-success">Successfully submitted</button>
-              {/if}
+							<input
+								type="text"
+								placeholder="taskname"
+								class="input input-bordered input-sm w-full max-w-xs"
+								bind:value={taskname}
+							/>
+							{#if submission == 'no'}
+								<button
+									class="btn btn-outline"
+									on:click={() => {
+										handleSubmit();
+									}}
+								>
+									Submit <b>{selectedItem.extractedFrom}</b> to DRES
+								</button>
+							{:else if submission == 'submitting'}
+								<button class="btn btn-outline" disabled>
+									<span class="loading loading-ring"></span>
+									Waiting for DRES reply
+								</button>
+							{:else if submission == 'error'}
+								<button class="btn btn-error">Something went wrong</button>
+							{:else if submission == 'success'}
+								<button class="btn btn-success">Successfully submitted</button>
+							{/if}
 						</div>
 						<div class="w-full h-full col-span-2 aspect-auto">
 							<Videoplayer

@@ -42,7 +42,6 @@
 	const updateProgressBar = (video: any, progressBar: any) => {
 		const progress =
 			((video.currentTime - startTime / 1000) / (endTime / 1000 - startTime / 1000)) * 100;
-		console.log(progress);
 		progressBar.style.width = `${Math.max(0, Math.min(100, progress))}%`;
 	};
 
@@ -67,8 +66,8 @@
 		const progressBar: any = document.getElementById('progressBar');
 		const timeDisplay: any = document.getElementById('timeDisplay');
 		const dialog = document.getElementById('detailModal');
-    playPauseButton.removeEventListener('click', togglePlayPause(video, playPauseButton));
-    
+		playPauseButton.removeEventListener('click', togglePlayPause(video, playPauseButton));
+
 		video.currentTime = 0;
 		video.pause();
 		playPauseButton.textContent = 'Play';
@@ -78,7 +77,6 @@
 		// Update time and progress bar
 		video.removeEventListener('timeupdate', timeUpdate(video, progressBar, timeDisplay));
 
-		
 		progressContainer.removeEventListener('click', seekVideo(video, progressContainer));
 		if (dialog) {
 			dialog.removeEventListener('close', cleanup);
@@ -88,7 +86,6 @@
 	};
 
 	const initialize = () => {
-		console.log('onMount');
 		const dialog = document.getElementById('detailModal');
 		if (dialog) {
 			dialog.addEventListener('open', initialize);
