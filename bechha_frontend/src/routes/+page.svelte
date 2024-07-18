@@ -5,12 +5,14 @@
 	import { onMount } from 'svelte';
 	import Videoplayer from '$lib/Videoplayer.svelte';
 
+	import { PUBLIC_DRES_API_USERNAME, PUBLIC_DRES_API_PASSWORD } from '$env/static/public';
+	import axios from 'axios';
 	let activeType: CardType = CardType.Browse;
 	let searchResult: Promise<SearchResult> = apiConnector.search(
 		[''],
 		1,
 		12,
-		'desc',
+		'asc',
 		'extractedFrom',
 		CardType.Browse
 	);
@@ -59,24 +61,26 @@
 	}
 
 	function handleActivate(event: any) {
-		let activatedType = (event.detail.type as CardType);
+		console.log('Activated type: ' + event.detail.type);
+		let activatedType = event.detail.type as CardType;
+		activePage = 1;
 		if (activatedType == CardType.Browse) {
-			if(searchTags.length > 0) {
+			if (searchTags.length > 0) {
 				searchResult = apiConnector.search(
-				event.detail.selected,
-				activePage,
-				12,
-				'desc',
-				'extractedFrom',
-				CardType.Browse
-			);
+					event.detail.selected,
+					activePage,
+					12,
+					'asc',
+					'extractedFrom',
+					CardType.Browse
+				);
 			}
 		} else if (activatedType == CardType.ContentSearch) {
 			searchResult = apiConnector.search(
 				event.detail.selected,
 				activePage,
 				12,
-				'desc',
+				'asc',
 				'extractedFrom',
 				CardType.ContentSearch
 			);
@@ -89,7 +93,7 @@
 			event.detail.selected,
 			activePage,
 			12,
-			'desc',
+			'asc',
 			'extractedFrom',
 			CardType.ContentSearch
 		);
@@ -108,38 +112,66 @@
 		return `${minutes}m ${formattedSeconds}s`;
 	}
 
+	function setCookie(name: string, value: string, days: number): void {
+		const date = new Date();
+		date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+		const expires = `expires=${date.toUTCString()}`;
+		document.cookie = `${name}=${value}; SameSite=None; ${expires}; path=/`;
+	}
+
+	// For cross-origin requests, set withCredentials to true
+	axios.defaults.withCredentials = true;
+
+	// Function to make a request and store cookies
+	async function makeRequest(url, method = 'GET', data = null) {
+		try {
+			const requestInit: RequestInit = {
+				method: method,
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: data ? JSON.stringify(data) : undefined
+			};
+
+			const response = await fetch(url, requestInit);
+
+			// Return the response data
+			return await response.json();
+		} catch (error) {
+			console.error('Error making request:', error);
+			throw error;
+		}
+	}
+
 	async function handleSubmit() {
 		// Set submission to "submitting"
 		submission = 'submitting';
 
 		try {
-			let response = await fetch('https://vbs.videobrowsing.org/api/v2/login', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					username: import.meta.env.DRES_API_USERNAME,
-					password: import.meta.env.DRES_API_PASSWORD
-				})
-			});
+			// Initial request to set cookies
+			const initialResponse = await makeRequest(
+				'https://vbs.videobrowsing.org/api/v2/login',
+				'POST',
+				{
+					username: PUBLIC_DRES_API_USERNAME,
+					password: PUBLIC_DRES_API_PASSWORD
+				} as any
+			);
+			console.log('Initial Response:', initialResponse);
+			// setCookie('SESSIONID', response.data.sessionId, 99);
+			// console.log(response.data.sessionId);
+			document.cookie += `SESSIONID=${initialResponse.sessionId}; SameSite=None; path=/`;
+			console.log(document.cookie);
+			const listResponse = await makeRequest(
+				'https://vbs.videobrowsing.org/api/v2/evaluation/info/list'
+			);
 
-			if (!response.ok) {
-				throw new Error('Login failed');
-			}
-
-			response = await fetch('https://vbs.videobrowsing.org/api/v2/evaluation/info/list', {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-			if (!response.ok) {
+			if (!listResponse.data) {
 				throw new Error('Failed to fetch evaluations');
 			}
 
-			const evaluations = await response.json();
+			const evaluations = listResponse.data;
 			const evaluation = evaluations.find((e) => e.name === 'IVADL2024');
 
 			if (!evaluation) {
@@ -148,31 +180,35 @@
 
 			const evaluationId = evaluation.id;
 
-			response = await fetch(`https://vbs.videobrowsing.org/api/v2/submit/${evaluationId}`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					answerSets: [
-						{
-							taskId: evaluationId, // Replace with actual task ID
-							taskName: taskname, // Replace with actual task name
-							answers: [
-								{
-									text: null,
-									mediaItemName: selectedItem.extractedFrom,
-									mediaItemCollectionName: 'IVADL',
-									start: selectedItem.starting_time,
-									end: 0 + selectedItem.ending_time
-								}
-							]
-						}
-					]
-				})
-			});
+			let evaluation_req = await fetch(
+				`https://vbs.videobrowsing.org/api/v2/submit/${evaluationId}`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					credentials: 'include',
+					body: JSON.stringify({
+						answerSets: [
+							{
+								taskId: evaluationId, // Replace with actual task ID
+								taskName: taskname, // Replace with actual task name
+								answers: [
+									{
+										text: null,
+										mediaItemName: selectedItem.extractedFrom,
+										mediaItemCollectionName: 'IVADL',
+										start: selectedItem.starting_time,
+										end: 0 + selectedItem.ending_time
+									}
+								]
+							}
+						]
+					})
+				}
+			);
 
-			if (!response.ok) {
+			if (!evaluation_req.ok) {
 				throw new Error('Submission failed');
 			}
 
@@ -274,7 +310,6 @@
 					options={availableTags}
 					selected={searchTags}
 					on:activate={handleActivate}
-					on:tagselection={handleTagSelection}
 				/>
 			</div>
 			<div class="card-container justify-self-start">
@@ -334,14 +369,33 @@
 				<div class="grid w-full h-[20%] place-content-center">
 					<!-- <button class="join-item btn btn-disabled">...</button> -->
 					<div class="join">
-						{#each paginate(activePage, value.totalResults, value.limit, 5).left as page}
+						{#if paginate(activePage, value.totalResults, value.limit, 5).left.length == 5}
 							<button
 								class="join-item btn"
 								on:click={() => {
-									selectPage(page, value);
-								}}>{page}</button
+									selectPage(1, value);
+								}}>{1}</button
 							>
-						{/each}
+							<button class="join-item btn btn-disabled">...</button>
+							{#each paginate(activePage, value.totalResults, value.limit, 5).left.slice(1, 6) as page}
+								<button
+									class="join-item btn"
+									on:click={() => {
+										selectPage(page, value);
+									}}>{page}</button
+								>
+							{/each}
+						{:else}
+							{#each paginate(activePage, value.totalResults, value.limit, 5).left as page}
+								<button
+									class="join-item btn"
+									on:click={() => {
+										selectPage(page, value);
+									}}>{page}</button
+								>
+							{/each}
+						{/if}
+
 						<button
 							class="join-item btn btn-primary"
 							on:click={() => {
@@ -366,20 +420,6 @@
 								}}>{page}</button
 							>
 						{/each}
-						<!-- {#if value.totalResults > 12}
-							{#each Array.from({ length: Math.ceil(value.totalResults / 12) }, (_, i) => i) as page, index}
-								{#if index === 0 || index === Math.ceil(value.totalResults / 12) - 1 || (index >= activePage - 2 && index <= activePage + 2)}
-									<button
-										class="join-item btn {page === activePage ? 'btn-primary' : ''}"
-										on:click={() => {
-											selectPage(page, value);
-										}}>{index + 1}</button
-									>
-								{:else if index === activePage - 3 || index === activePage + 3}
-									<button class="join-item btn btn-disabled">...</button>
-								{/if}
-							{/each}
-						{/if} -->
 					</div>
 				</div>
 

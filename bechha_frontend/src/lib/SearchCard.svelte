@@ -5,16 +5,6 @@
 	let loading = false;
 	export let selected: string[];
 
-	$: if (selected) {
-		loading = true;
-		setTimeout(async () => {
-			if (selected.length != 0) {
-				dispatch('tagselection', { selected });
-			}
-			loading = false;
-		}, 1000);
-	}
-
 	export let type: CardType;
 	export let options: string[];
 
