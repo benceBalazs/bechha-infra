@@ -32,11 +32,11 @@ const processSearchQuery = async (req: Request, res: Response) => {
 
 	// get the total number of segments matching the tags
 	const totalResults = tagsArray
-		? await Segment.countDocuments({ tags: { $all: tagsArray } })
+		? await Segment.countDocuments({ tokens: { $all: tagsArray } })
 		: await Segment.countDocuments();
 
 	let result = filteredData.map((segment: any) => {
-		(segment as any).videoplayerUrl = `/videoplayer/${segment.extractedFrom}`;
+		(segment as any).videoplayerUrl = `/video/${segment.extractedFrom}/stream`;
 		return segment;
 	});
 	res.status(200).json({

@@ -1,9 +1,8 @@
 import express from "express";
-import cors from "express";
+import cors from "cors";
 import mainRouter from "@Routes";
 import morgan from "morgan";
 import { LOGGER } from "@Utils";
-
 
 //using the logger and its configured transports, to save the logs created by Morgan
 const REST_API = (port: number) => {
@@ -14,7 +13,13 @@ const REST_API = (port: number) => {
 	};
 	const app = express();
 	app.use(morgan("combined", { stream: morganStream }));
-	app.use(cors());
+	app.use(
+		cors({
+			origin: "*",
+			methods: ["GET", "POST"],
+			allowedHeaders: ["Content-Type", "Authorization"],
+		})
+	);
 	app.use(express.json());
 	app.use("/", mainRouter);
 	app.listen(port, () => {
