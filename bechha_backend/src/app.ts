@@ -3,12 +3,12 @@
 // It connects to the MongoDB database and starts the REST API.
 // It also imports the data from the dataset folder and the processed dataset folder.
 
-import { connectToDatabase, LOGGER, processDataFolder} from "@Utils";
+import { connectToDatabase, LOGGER, processDataFolder } from "@Utils";
 import "@/services/restService";
 import path from "path";
 
 import dotenv from "dotenv";
-import { AppConfig } from "@Types";
+import { AppConfig, DRESsubmit } from "@Types";
 
 // Load the configuration from the environment variables and the .env file
 export const CONFIG = (() => {
@@ -24,6 +24,10 @@ export const CONFIG = (() => {
 		DATASET_PATH: path.resolve(raw.DATASET_PATH),
 		// The path to the processed dataset folder
 		PROCESSED_DATASET_PATH: path.resolve(raw.PROCESSED_DATASET_PATH),
+		// The DRES username
+		DRES_USERNAME: raw.DRES_USERNAME || "",
+		// The DRES password
+		DRES_PASSWORD: raw.DRES_PASSWORD || "",
 	};
 
 	// Log the loaded configuration
@@ -38,6 +42,11 @@ import REST_API from "@/services/restService";
 // Import the functions to import the data from the dataset folders
 import { parseUnprocessedData } from "@Services/unprocessedDataImporter";
 import { parseProcessedData } from "@Services/processedDataImporter";
+import axios from "axios";
+
+
+
+
 
 // Connect to the MongoDB database and start the REST API
 (async () => {
@@ -53,4 +62,3 @@ import { parseProcessedData } from "@Services/processedDataImporter";
 	// Log that the data importing is finished
 	LOGGER.info(`Finished importing data`);
 })();
-
