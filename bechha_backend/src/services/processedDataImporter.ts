@@ -2,14 +2,23 @@ import Segment, { ISegment } from "@Models/segment";
 import { filterTokens, LOGGER, parseTime, readDirectoryContents, readJsonFile } from "@Utils";
 import path from "path";
 
-function createSegmentsFromSceneData(sceneData: any, id: string, frameFiles: string[]): ISegment[] {
-	const segments: any[] = [];
+/**
+ * Creates segments from the given scene data.
+ *
+ * @param {any[]} sceneData - The scene data.
+ * @param {string} id - The ID of the segment.
+ * @param {string[]} frameFiles - The frame files.
+ * @returns {ISegment[]} The created segments.
+ */
+function createSegmentsFromSceneData(sceneData: any[], id: string, frameFiles: string[]): ISegment[] {
+	const segments: ISegment[] = [];
 
+	// Iterate over each scene in the scene data
 	for (const scene of sceneData) {
 		const frameFile = scene.frame;
-
 		const description = scene.description ? scene.description : "";
 
+		// Create a segment object and push it to the segments array
 		const segment = {
 			fileName: frameFile,
 			extractedFrom: id,
@@ -24,7 +33,7 @@ function createSegmentsFromSceneData(sceneData: any, id: string, frameFiles: str
 			description: description,
 			tokens: [scene.category, ...filterTokens(description)],
 			category: scene.category,
-		};
+		} as ISegment;
 
 		segments.push(segment);
 	}
@@ -32,10 +41,16 @@ function createSegmentsFromSceneData(sceneData: any, id: string, frameFiles: str
 	return segments;
 }
 
+/**
+ * Processes the files in the given directory asynchronously.
+ *
+ * @param {string} directoryPath - The path of the directory.
+ * @returns {Promise<ISegment[]>} A promise that resolves to the processed segments.
+ */
 async function processFiles(directoryPath: string): Promise<ISegment[]> {
 	try {
 		const files = await readDirectoryContents(directoryPath);
-		const segments: any[] = [];
+		const segments: ISegment[] = [];
 
 		// Filter and process scene JSON files
 		const sceneFiles = files.filter((file) =>
@@ -56,16 +71,26 @@ async function processFiles(directoryPath: string): Promise<ISegment[]> {
 	}
 }
 
-export async function parseProcessedData(folder: string) {
+/**
+ * Parses the processed data from the given folder asynchronously.
+ *
+ * @param {string} folder - The folder path.
+ * @returns {Promise<void>} A promise that resolves when the data is parsed.
+ */
+export async function parseProcessedData(folder: string): Promise<void> {
 	LOGGER.info(`Importing process data from "${folder}"`);
+
+	// Process files in the folder and get the segments
 	let segments = await processFiles(folder);
 
+	// Find existing segments in the database
 	const existingSegments = await Segment.find({
 		extractedFrom: { $in: segments.map((segment) => segment.extractedFrom) },
 		starting_frame: { $in: segments.map((segment) => segment.starting_frame) },
 		ending_frame: { $in: segments.map((segment) => segment.ending_frame) },
 	}).exec();
 
+	// Filter out segments that already exist in the database
 	const segmentsToSave = segments.filter((segment) => {
 		return !existingSegments.some((existingSegment) => {
 			return (
@@ -76,7 +101,10 @@ export async function parseProcessedData(folder: string) {
 		});
 	});
 
+	// Save the segments that don't already exist in the database
 	await Segment.insertMany(segmentsToSave);
+
+	// Log the new segments found
 	let res = segmentsToSave.map((segment: ISegment) => {
 		return "\t" + segment.fileName;
 	});

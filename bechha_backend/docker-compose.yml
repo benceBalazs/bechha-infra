@@ -15,7 +15,6 @@ services:
       HOST: ${HOSTNAME}
       PORT: 3000
       MONGODB_URI: mongodb://mongo:27017/videosDB
-      MAX_VIDEOS_PER_UPLOAD: 10
     depends_on:
       - mongo
 volumes:
