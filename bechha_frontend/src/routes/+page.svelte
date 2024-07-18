@@ -3,6 +3,7 @@
 	import SearchCard from '$lib/SearchCard.svelte';
 	import { CardType, type SearchResult, type SearchResultDetail } from '$lib/types';
 	import { onMount } from 'svelte';
+  import { DRES_API_USERNAME, DRES_API_PASSWORD } from '$env/static/private';
 	import SampleImage from '$lib/samples/00100_frame0009.jpg';
 	import Videoplayer from '$lib/Videoplayer.svelte';
 	import Layout from './+layout.svelte';
@@ -12,6 +13,8 @@
 	let searchResult: Promise<SearchResult> = apiConnector.search(['man'], 1, 8, "desc", "extracedFrom", CardType.ContentSearch);
 	let availableTags: string[];
 	let searchTags: string[];
+  let submission: string = "no"
+  let taskname: string = "default";
 	let selectedItem: SearchResultDetail = {
 		fileName: '00199_frame0144.jpg',
 		extractedFrom: '00199',
@@ -81,6 +84,84 @@
 
 		return `${minutes}m ${formattedSeconds}s`;
 	}
+
+    async function handleSubmit() {
+    // Set submission to "submitting"
+    submission = "submitting";
+    
+    try {
+      let response = await fetch("https://vbs.videobrowsing.org/api/v2/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          username: DRES_API_USERNAME,
+          password: DRES_API_PASSWORD
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Login failed");
+      }
+
+      response = await fetch("https://vbs.videobrowsing.org/api/v2/evaluation/info/list", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch evaluations");
+      }
+
+      const evaluations = await response.json();
+      const evaluation = evaluations.find(e => e.name === "IVADL2024");
+
+      if (!evaluation) {
+        throw new Error("Evaluation IVADL2024 not found");
+      }
+
+      const evaluationId = evaluation.id;
+
+      response = await fetch(`https://vbs.videobrowsing.org/api/v2/submit/${evaluationId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          answerSets: [
+            {
+              taskId: evaluationId, // Replace with actual task ID
+              taskName: taskname, // Replace with actual task name
+              answers: [
+                {
+                  text: null,
+                  mediaItemName: selectedItem.extractedFrom,
+                  mediaItemCollectionName: "IVADL",
+                  start: selectedItem.starting_time,
+                  end: 0+selectedItem.ending_time
+                }
+              ]
+            }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Submission failed");
+      }
+
+      // Set submission to "success"
+      submission = "success";
+
+    } catch (error) {
+      // Set submission to "error"
+      submission = "error";
+      console.error("Error:", error);
+    }
+  }
 </script>
 
 <div class="w-full h-full px-4">
@@ -219,10 +300,26 @@
 									{/each}
 								</div>
 							</div>
-							<button class="btn btn-outline">
-								<span class="loading loading-spinner"></span>
-								Waiting for DRES reply
-							</button>
+              <input
+              type="text"
+              placeholder="taskname"
+              class="input input-bordered input-sm w-full max-w-xs"
+              bind:value={taskname} 
+              />
+              {#if submission == "no"}
+                <button class="btn btn-outline" on:click={()=>{handleSubmit()}}>
+                  Submit <b>{selectedItem.extractedFrom}</b> to DRES
+                </button>
+              {:else if submission == "submitting"}
+                <button class="btn btn-outline" disabled>
+                  <span class="loading loading-ring"></span>
+                  Waiting for DRES reply
+                </button>
+              {:else if submission == "error"}
+                <button class="btn btn-error">Something went wrong</button>
+              {:else if submission == "success"}
+                <button class="btn btn-success">Successfully submitted</button>
+              {/if}
 						</div>
 						<div class="w-full h-full col-span-2 aspect-auto">
 							<Videoplayer
