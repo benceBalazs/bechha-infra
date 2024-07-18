@@ -29,7 +29,10 @@
   const dispatch = createEventDispatcher();
 
   function activateCard() {
-    dispatch('activate', type);
+    dispatch('activate', {
+      type,
+      selected
+    });
   }
 </script>
 

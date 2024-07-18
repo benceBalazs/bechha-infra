@@ -1,8 +1,8 @@
 // src/lib/ApiConnector.ts
-import type { SearchResult } from './types';
+import { CardType, type SearchResult } from './types';
 import { mockApi } from './MockApi';
 
-const USE_MOCK_API = false;
+const USE_MOCK_API = true;
 
 class ApiConnector {
     private baseUrl: string;
@@ -19,11 +19,25 @@ class ApiConnector {
         return response.json();
     }
 
-    async search(tags: string[], page: number = 1, limit: number = 10): Promise<SearchResult> {
+    async search(tags: string[], page: number = 1, limit: number = 10, direction: string, orderBy: string, type: CardType): Promise<SearchResult> {
         if (USE_MOCK_API) {
             return mockApi.search(tags, page, limit);
         }
-        const url = `${this.baseUrl}/search?tags=${tags.join(',')}&page=${page}&limit=${limit}`;
+        let url = `${this.baseUrl}/search`;
+        if (type == CardType.ContentSearch) {
+            url += `?tags=${tags.join(',')}`;
+            url += `&page=${page}`;
+            url += `&limit=${limit}`;
+            if (direction != undefined && orderBy != undefined) {
+                url += `&direction=${direction}&orderBy=${orderBy}`
+            }
+        } else {
+            url += `?page=${page}`;
+            url += `&limit=${limit}`;
+            if (direction != undefined && orderBy != undefined) {
+                url += `&direction=${direction}&orderBy=${orderBy}`
+            }
+        }
         return this.fetchApi<SearchResult>(url);
     }
 

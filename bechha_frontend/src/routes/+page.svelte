@@ -5,10 +5,11 @@
 	import { onMount } from 'svelte';
 	import SampleImage from '$lib/samples/00100_frame0009.jpg';
 	import Videoplayer from '$lib/Videoplayer.svelte';
+	import Layout from './+layout.svelte';
 
 	let activeType: CardType = CardType.ContentSearch;
 	let isSearchActive: boolean = true;
-	let searchResult: Promise<SearchResult> = apiConnector.search(['man'], 1, 8);
+	let searchResult: Promise<SearchResult> = apiConnector.search(['man'], 1, 8, "desc", "extracedFrom", CardType.ContentSearch);
 	let availableTags: string[];
 	let searchTags: string[];
 	let selectedItem: SearchResultDetail = {
@@ -25,6 +26,10 @@
 		tokens: ['cliff', 'man', 'standing', 'top', 'rock'],
 		category: ['cliff']
 	};
+  let activePage: number = 1;
+  $: if(availableTags) {
+    activePage = 1;
+  }
 
 	onMount(() => {
 		getAvailableTags();
@@ -48,14 +53,27 @@
 	}
 
 	function handleActivate(event: any) {
-		activeType = event.detail;
+		activeType = event.detail.type;
 		isSearchActive = !isSearchActive;
+    if (event.detail.type == CardType.Browse) {
+      searchResult = apiConnector.search(event.detail.selected, activePage, 12, "desc", "extractedFrom", CardType.Browse);
+    } else {
+      searchResult = apiConnector.search(event.detail.selected, activePage, 12, "desc", "extractedFrom", CardType.ContentSearch);
+    }
 	}
 
 	async function handleTagSelection(event: any) {
 		console.log(event.detail.selected);
-		searchResult = apiConnector.search(event.detail.selected, 1, 8);
+    searchResult = apiConnector.search(event.detail.selected, activePage, 12, "desc", "extractedFrom", CardType.ContentSearch);
 	}
+
+  async function handlePageSelection(page: number, searchresult: SearchResult) {
+    let selectedCard = CardType.ContentSearch;
+    if(!isSearchActive) selectedCard = CardType.Browse;
+    searchResult = apiConnector.search(availableTags, page, 12, "desc", "extractedFrom", selectedCard);
+    activePage = page;
+	}
+
 	function convertMilliseconds(ms: number): string {
 		const minutes = Math.floor(ms / 60000);
 		const seconds = Math.floor((ms % 60000) / 1000);
@@ -102,7 +120,7 @@
 	<div class="grid grid-rows-6 w-full h-[92.5%]">
 		<div class="w-full h-full row-span-1 grid grid-cols-2 gap-4">
 			<!-- Main Area -->
-			<div class="card-container justify-self-end">
+			<div class="card-container justify-self-end relative z-10">
 				<SearchCard
 					type={CardType.ContentSearch}
 					checked={isSearchActive}
@@ -124,7 +142,7 @@
 				/>
 			</div>
 		</div>
-		<div class="w-full h-[calc(100% - 1.25rem)] row-span-5 mt-5">
+		<div class="w-full h-[calc(100% - 1.25rem)] row-span-5 mt-5 z-0 relative">
 			<!-- Results -->
 			{#await searchResult}
 				<div class="grid place-content-center w-full h-full">
@@ -132,11 +150,11 @@
 				</div>
 			{:then value}
 				<div
-					class="w-full h-[80%] flex flex-row flex-wrap justify-center gap-4 overflow-y-auto shadow-inner"
+					class="w-full h-[80%] flex flex-row flex-wrap justify-center gap-4 overflow-y-auto shadow-inner z-0 relative"
 				>
 					{#each value.results as item}
 						<button
-							class="card card-compact bg-base-100 w-96 shadow-xl basis-1/5 border cursor-pointer"
+							class="card card-compact bg-base-100 w-96 shadow-xl basis-1/5 border cursor-pointer z-0 relative"
 							on:click={() => openDetailModal(item)}
 						>
 							<figure class="w-full">
@@ -171,7 +189,9 @@
 				</div>
 				<div class="grid w-full h-[20%] place-content-center">
 					<div class="join">
-						<button class="join-item btn btn-active">1</button>
+            {#each Array(Math.ceil(value.totalResults/12)) as page, index}
+              <button class="join-item btn" on:click={()=>{handlePageSelection(index, value)}}>{index}</button>
+            {/each}
 					</div>
 				</div>
 
