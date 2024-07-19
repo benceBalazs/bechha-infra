@@ -22,8 +22,10 @@ const processSearchQuery = async (req: Request, res: Response) => {
 		tags: tagsArray,
 		page: parseInt((req.query.page as string) ?? "1"),
 		limit: parseInt((req.query.limit as string) ?? "10"),
-		direction: (req.query.direction as "desc" | "asc") ?? "asc",
-		orderBy: (req.query.orderBy as keyof ISegment) ?? "extractedFrom",
+		// direction: (req.query.direction as "desc" | "asc") ?? "asc",
+		// orderBy: (req.query.orderBy as keyof ISegment) ?? "extractedFrom",
+		direction: 1 as any,
+		orderBy: "fileName",
 	};
 	//get all segments from database where the token attribute contains all of the tags
 	const filteredData = tagsArray

@@ -99,7 +99,13 @@
 	}
 
 	async function selectPage(page: number, searchresult: SearchResult) {
-		searchResult = apiConnector.search(searchTags, page, 12, 'asc', 'extractedFrom', activeType);
+		if (activeType === CardType.Browse) {
+			searchResult = apiConnector.search([], page, 12, 'asc', 'extractedFrom', activeType);
+			
+		} else {
+			searchResult = apiConnector.search(searchTags, page, 12, 'asc', 'extractedFrom', activeType);
+			
+		}
 		activePage = page;
 	}
 
