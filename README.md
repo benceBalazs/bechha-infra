@@ -1,3 +1,4 @@
+![cover imageI](TitleImage.png)
 # Bechha - Video Search and Retrieval System
 
 # Backend
